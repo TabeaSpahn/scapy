@@ -13,7 +13,7 @@ from scapy.consts import LINUX
 if six.PY2 or not LINUX:
     conf.contribs['CANSocket'] = {'use-python-can': True}
 from scapy.contrib.cansocket import CANSocket, PYTHON_CAN  # noqa: F401
-from scapy.contrib.automotive.xcp import XCP_SCANNER as XCP_CAN_SCANNER  # noqa: F401 E501
+from scapy.contrib.automotive.xcp.xcp import XCP_SCANNER as XCP_CAN_SCANNER  # noqa: F401 E501
 
 
 def usage():
