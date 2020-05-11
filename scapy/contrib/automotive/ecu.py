@@ -380,6 +380,7 @@ class ECU_am(AnsweringMachine):
         print("%s ==> %s" % (req.summary(), [res.summary() for res in reply]))
 
     def make_reply(self, req):
+        req.show()
         if self.supported_responses is not None:
             for resp in self.supported_responses:
                 if not isinstance(resp, ECUResponse):
