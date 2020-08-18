@@ -8,7 +8,7 @@
 # scapy.contrib.status = loads
 
 
-from build.lib.scapy.contrib.automotive.xcp.cto_commands_slave import \
+from scapy.contrib.automotive.xcp.cto_commands_slave import \
     GenericResponse, NegativeResponse, EvPacket, ServPacket, \
     TransportLayerCmdGetSlaveIdResponse, TransportLayerCmdGetDAQIdResponse, \
     SegmentInfoMode0PositiveResponse, SegmentInfoMode1PositiveResponse, \
