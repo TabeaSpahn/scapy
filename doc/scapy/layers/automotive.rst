@@ -514,7 +514,7 @@ XCPonCANScanner is a utility to find the CAN Identifiers of ECUs that support XC
 Interactive shell usage example::
     >>> conf.contribs['CANSocket'] = {'use-python-can': False}
     >>> load_layer("can")
-    >>> load_layer("automotive.xcp")
+    >>> load_layer("automotive.xcp.xcp")
     >>> broadcast_identifier =
     >>> sock = CANSocket("vcan0")
     >>> sock.basecls = XCPOnCAN
