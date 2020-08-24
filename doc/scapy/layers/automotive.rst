@@ -455,10 +455,11 @@ Universal calibration and measurement protocol (XCP)
 ====================================================
 
 XCP is the successor of CCP. It is usable with several protocols. Scapy includes CAN, UDP and TCP.
-XCP has two types of message objects. One is called Command Transfer Object (CTO), one is called
-Data Transmission Object (DTO) and the other. Usually CTOs send to an ECU are requests(commands) and the ECU replies with a response (positive, error,..).
-DTOs are usually sent by the ECU, Then they are called DAQ and include measured values. The ECU can also receive DTOs.
-These are used for a periodic stimulation and are called STIM.
+XCP has two types of message types: Command Transfer Object (CTO) and Data Transmission Object (DTO).
+CTOs send to an ECU are requests (commands) and the ECU has to reply with a positive response or an error.
+Additionally, the ECU can send a CTO to inform the master about an asynchronous event(EV) or request a service execution(SERV).
+DTOs sent by the ECU are called DAQ(Data AcQuisition) and include measured values.
+DTOs received by the ECU are used for a periodic stimulation and are called STIM(Stimulation).
 
 
 Creating a CTO message::
@@ -467,7 +468,7 @@ Creating a CTO message::
     CTORequest(pid="GET_DAQ_RESOLUTION_INFO") / GetDaqResolutionInfo()
     CTORequest(pid="GET_SEED") / GetSeed(mode=0x01,resource=0x00)
 
-To send the message over CAN a the header has to be added
+To send the message over CAN a header has to be added
 
     pkt = XCPOnCAN(identifier=0x700) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
     sock = CANSocket(iface=can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=250000))
@@ -482,7 +483,7 @@ Sending a CTO message::
 
 Since sr1 calls the answers function, our payload of the XCP-response objects gets interpreted with the
 command of our CTO object. Otherwise it could not be interpreted.
-The first message should always be the "CONNECT" Message, the response of the ECU determines how the messages are read. e.g.: byte order.
+The first message should always be the "CONNECT" Message, the response of the ECU determines how the messages are read. E.g.: byte order.
 Otherwise, one must set the address granularity, and max size of the DTOs and CTOs per hand in the contrib config::
 
     conf.contribs['XCP']['Address_Granularity_Byte'] = 1  # Can be 1, 2 or 4
@@ -495,7 +496,7 @@ If you do not want this to be set after receiving the message you can also disab
     conf.contribs['XCP']['allow_ag_change'] = False
     conf.contribs['XCP']['allow_cto_and_dto_change'] = False
 
-To send a pkt ofer TCP or UDP Another header must be used.
+To send a pkt over TCP or UDP another header must be used.
 TCP::
 
     prt1, prt2 = 12345, 54321
@@ -509,20 +510,19 @@ UDP::
 XCPonCANScanner
 ---------------
 
-XCPonCANScanner is a utility to find the CAN Identifiers of ECUs that support XCP.
+XCPonCANScanner is a utility to find the CAN identifiers of ECUs that support XCP.
 
 Interactive shell usage example::
     >>> conf.contribs['CANSocket'] = {'use-python-can': False}
     >>> load_layer("can")
-    >>> load_layer("automotive.xcp.xcp")
-    >>> broadcast_identifier =
+    >>> load_contrib("automotive.xcp.xcp")
     >>> sock = CANSocket("vcan0")
     >>> sock.basecls = XCPOnCAN
     >>> scanner = XCPOnCANScanner(sock)
     >>> result = scanner.start_scan()
 
-The result includes the slave_id(the identifier of the ECU that receives XCP messages),
-and the response_id(the identifier that the ECU will send XCP messages to).
+The result includes the slave_id (the identifier of the ECU that receives XCP messages),
+and the response_id (the identifier that the ECU will send XCP messages to).
 
 
 ISOTP
