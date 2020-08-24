@@ -25,16 +25,13 @@ from scapy.main import load_layer
 = Load module
 
 load_layer("can")
-load_layer("automotive.xcp")
+load_contrib("automotive.xcp.xcp")
 
 = Global variables
 
 iface0 = "vcan0"
 
 = Initialize a virtual CAN interface
-
-def set_up_virtual_python_can_socket(iface):
-    return CANSocket(bustype='virtual', channel=iface, timeout=0.01)
 
 print('setting up CAN')
 
@@ -88,6 +85,8 @@ time.sleep(0.1)
 pkt = XCPOnCAN(identifier=0x700) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
 ans = sock1.sr1(pkt, timeout=3)
 thread.join()
+sock1.close()
+sock2.close()
 ans.show()
 
 assert ans.identifier == 0x700
@@ -139,7 +138,7 @@ result = scanner.start_scan()
 
 assert result[0]["slave_id"] == ecu_xcp_identifier
 assert result[0]["response_id"] == ecu_response_identifier
-
+thread.join()
 sock1.close()
 sock2.close()
 
