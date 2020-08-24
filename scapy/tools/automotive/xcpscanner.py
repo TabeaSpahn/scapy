@@ -3,164 +3,172 @@
 # This file is part of Scapy
 # See http://www.secdev.org/projects/scapy for more information
 # Copyright (C) Fabian Wiche <f.wiche@gmx.de>
+# Copyright (C) Tabea Spahn <tabea.spahn@e-mundo.de>
+
 # This program is published under a GPLv2 license
 import getopt
+import signal
 import sys
 
-import scapy.modules.six as six
-from scapy.config import conf
-from scapy.consts import LINUX
-if six.PY2 or not LINUX:
-    conf.contribs['CANSocket'] = {'use-python-can': True}
-from scapy.contrib.cansocket import CANSocket, PYTHON_CAN  # noqa: F401
-from scapy.contrib.automotive.xcp.xcp import XCP_SCANNER as XCP_CAN_SCANNER  # noqa: F401 E501
+from scapy.contrib.automotive.xcp.scanner import XCPOnCANScanner
+from scapy.contrib.automotive.xcp.xcp import XCPOnCAN
+from scapy.contrib.cansocket import CANSocket
+# TOOD: rewrite tests and add documentation
+
+class ScannerParams:
+    def __init__(self):
+        self.use_extended_can_id = False
+        self.broadcast_id = None
+        self.broadcast_id_range = None
+        self.verbose = False
+        self.channel = None
+
+
+def signal_handler(_sig, _frame):
+    print('Interrupting scan!')
+    sys.exit(0)
 
 
 def usage():
     usage_str = """
-    Finds open XCP Ports: It is recommended to use this tool with python3
-    parameters:
-        --channnel=CHANNEL      Defines CAN channel e.g "PCAN_USBBUS0", "can0"
-        --start=START           Start ID for XCP Scan in hex
-        --end=END               End ID for XCP Scan in hex
-        -x, --extended_can_ids  Use extended CAN Frames
-        --interface=IFACE       Interface for python-can e.g. "pcan", "vector"
-        --budrate=500000        Set baudrate, standard is 500000
+    Finds XCP slaves using the XCP Broadcast CAN identifier.
+    (It is recommended to use this tool with python3)
+    required parameters:
+        -c, --channel            Linux SocketCAN interface name, e.g.: vcan0
+    optional arguments:
+        -b, --broadcast_id       XCP Broadcast CAN identifier (in hex)
+        -e, --end=END            End XCP Broadcast CAN identifier End ID (in hex)
+                                    If actual ID is unknown the scan will test broadcast ids between  --start and --end
+        -s, --start=START        Start XCP Broadcast CAN identifier Start ID (in hex)
+                                     If actual ID is unknown the scan will test broadcast ids between  --start and --end
+        -x, --extended_can_ids  Use extended CAN identifiers
+        -v, --verbose           Display information during scan
         -h, --help              Show this
 
-        Example without python-can:
-            python3.6 -m scapy.tools.automotive.xcpscanner\
- --channel=can0 --start=0 --end=12 --extended_can_ids
-        Example with python-can (On Windows or python2):
-            python2.7 -m scapy.tools.automotive.xcpcanner --channel=\
-PCAN_USBUS1 --interface="pcan" --start=12 --end=15 --baudrate=500000
-    """
+        Examples:
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -b 500
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -s 50 -e 100
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -b 500 -x
+    """  # noqa: E501
     print(usage_str)
 
 
-def init_socket(can_channel="PCAN_USBBUS0", interface="pcan", bitrate=500000):
-    if PYTHON_CAN:
-        import can
-        can.rc['interface'] = interface
-        can.rc['channel'] = can_channel
-        can.rc['bitrate'] = bitrate
-        scan_interface = can.interface.Bus()
-        interface_string = """
-        CANSocket(iface=can.interface.Bus(bustype=" "'%s'," +
-        "channel='%s', bitrate = %d))""" % (interface, can_channel, bitrate)
-    else:
-        sock = None
-        scan_interface = can_channel
-        interface_string = "\"%s\"" % can_channel
+def init_socket(scan_params: ScannerParams):
+    print(f"Initializing socket for {scan_params.channel}")
     try:
-        sock = CANSocket(iface=scan_interface)
-        sock.nonblocking_socket = False
+        sock = CANSocket(scan_params.channel)
     except Exception as e:
-        print(e)
-        print("Could not find " + interface_string)
-        sys.exit(-1)
+        print(f"\nSocket could not be created: {e}\n")
+        sys.exit(1)
+    sock.basecls = XCPOnCAN
     return sock
 
 
-def get_int_from_input(string, option, base=16):
-    if base == 16:
-        format = "hex"
-    elif base == 10:
-        format = "dec"
-    else:
-        format = ""
-    try:
-        ret = int(string, base)
-    except ValueError:
-        print("Error: " + option + "´must be integer in " +
-              format + " format")
-        sys.exit(-1)
-    return ret
-
-
 def parse_inputs():
-    ret = {"extended": False,
-           "verbose": False,
-           "interface": "pcan",
-           "baudrate": 500000}
-    opts = "h:vx"
-    opt_strings = ["help", "start=", "end=",
-                   "extended_can_ids", "channel=",
-                   "verbose", "interface=", "baudrate="]
+    scanner_params = ScannerParams()
+    options = "b:s:e:c:xvh"
+    option_strings = ["broadcast_id=", "start=", "end=", "channel=",
+                      "extended_can_ids", "verbose", "help"]
     try:
-        opts = getopt.getopt(sys.argv[1:], opts, opt_strings)[0]
+        options = getopt.getopt(sys.argv[1:], options, option_strings)[0]
     except getopt.GetoptError as err:
-        print(str(err))
+        print("ERROR:", err)
         usage()
-        sys.exit()
-    for o, a in opts:
-        if o in ("-h", "--help"):
+        raise SystemExit
+    start = None
+    end = None
+    for opt, value in options:
+        print()
+        if opt in ("-h", "--help"):
             usage()
             sys.exit()
-        elif o in ("-x", "--extended_can_ids"):
-            ret["extended"] = True
-        elif o == "--start":
-            ret["start"] = get_int_from_input(a, o, 16)
-        elif o == "--end":
-            ret["end"] = get_int_from_input(a, o, 16)
-        elif o == "--channel":
-            ret["can_channel"] = a
-        elif o in ("-v", "--versbose"):
-            ret["verbose"] = True
-        elif o == "--interface":
-            ret["interface"] = a
-        elif o == "--baudrate":
-            ret["baudrate"] = get_int_from_input(a, o, 10)
+
+        if opt in ("broadcast_id", "-b"):
+            scanner_params.broadcast_id = int(value, 16)
+        elif opt in ("--start", "-s"):
+            start = int(value, 16)
+        elif opt in ("--end", "-e"):
+            end = int(value, 16)
+        elif opt in ("--channel", "-c"):
+            scanner_params.channel = value
+        elif opt in ("--interface", "-i"):
+            scanner_params.interface = value
+        elif opt in ("-x", "--extended_can_ids"):
+            scanner_params.use_extended_can_id = True
+        elif opt in ("--verbose", "-v"):
+            scanner_params.verbose = True
         else:
-            print("unknown option " + str(o))
+            print("unknown option " + str(opt))
             sys.exit(-1)
 
-    return ret
+    if start is not None and end is not None:
+        scanner_params.broadcast_id_range = (start, end)
+    elif bool(start) != bool(end):
+        print(start)
+        print(end)
+        print(bool(start))
+        print(bool(end))
+        print("You can not only set --end/-e or --start/-s."
+              "You have ot set both.")
+        usage()
+        sys.exit()
+
+    return scanner_params
+
+
+def check_scanner_input(scanner_params: ScannerParams):
+    def abort(error):
+        print(error)
+        usage()
+        sys.exit()
+
+    if scanner_params.channel is None:
+        abort("Pleas set missing parameter: --channel/-c")
+
+    if scanner_params.broadcast_id_range is not None and \
+            scanner_params.broadcast_id_range[0] >= \
+            scanner_params.broadcast_id_range[1]:
+        abort("Start identifier must be smaller than the end identifier")
 
 
 def main():
-    ret = parse_inputs()
+    scanner_params = parse_inputs()
+    check_scanner_input(scanner_params)
+    can_socket = init_socket(scanner_params)
+
     try:
-        if ret["can_channel"] is None or\
-                ret["end"] is None or\
-                ret["start"] is None:
-            print("Please set channel, end and start")
-            usage()
-            sys.exit()
+        if scanner_params.broadcast_id is not None:
+            scanner = XCPOnCANScanner(can_socket,
+                                      broadcast_id=scanner_params.broadcast_id,
+                                      use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
+                                      verbose=scanner_params.verbose)  # noqa: E501
 
-        if ret["end"] < ret["start"]:
-            print("end must be higher than start")
-            sys.exit()
+        elif scanner_params.broadcast_id_range is not None:
+            scanner = XCPOnCANScanner(can_socket,
+                                      broadcast_id_range=scanner_params.broadcast_id_range,  # noqa: E501
+                                      use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
+                                      verbose=scanner_params.verbose)  # noqa: E501
 
-        if ret["end"] > 0x7FF and not ret["extended"]:
-            print("Please use -x option for extended CAN-IDs")
-            sys.exit()
+        else:
+            scanner = XCPOnCANScanner(can_socket,
+                                      use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
+                                      verbose=scanner_params.verbose)  # noqa: E501
 
-    except KeyError:
-        usage()
-        sys.exit()
+        signal.signal(signal.SIGINT, signal_handler)
 
-    extended_can_id = ret["extended"]
-    start = ret["start"]
-    end = ret["end"]
-    can_channel = ret["can_channel"]
-    verbose = ret["verbose"]
-    baudrate = ret["baudrate"]
-    interface = ret["interface"]
+        results = scanner.start_scan()  # Blocking
 
-    can_socket = init_socket(can_channel, interface=interface,
-                             bitrate=baudrate)
-    scanner = XCP_CAN_SCANNER(can_socket, start,
-                              end, extended_can_id, verbose)
-    scanner.start_scan()  # Blocking
-    results = scanner.get_results()
-
-    if isinstance(results, list) and len(results) > 0:
-        for r in results:
-            print(r)
-    else:
-        print("No XCP-Port found between IDs " +
-              hex(start) + " and " + hex(end))
+        if isinstance(results, list) and len(results) > 0:
+            for r in results:
+                print(r)
+        else:
+            print("Detected no XCP slave.")
+    except Exception as err:
+        print(err, file=sys.stderr)
+        sys.exit(1)
+    finally:
+        can_socket.close()
 
 
 if __name__ == "__main__":
