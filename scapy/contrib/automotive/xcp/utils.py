@@ -15,9 +15,9 @@ def get_max_cto():
     max_cto = conf.contribs['XCP']['MAX_CTO']
     if max_cto:
         return max_cto
-    else:
-        warning("Define conf.contribs['XCP']['MAX_CTO'].")
-        raise KeyError("conf.contribs['XCP']['MAX_CTO'] not defined")
+
+    warning("Define conf.contribs['XCP']['MAX_CTO'].")
+    raise KeyError("conf.contribs['XCP']['MAX_CTO'] not defined")
 
 
 def get_max_dto():
@@ -102,7 +102,6 @@ class XCPEndiannessField(object):
         byte_oder = conf.contribs['XCP']['byte_order']
         endianness = ">" if byte_oder == 1 else "<"
 
-        # fld.fmt should always start with a order specifier, cf field
         self.fld.fmt = endianness + self.fld.fmt[1:]
         self.fld.struct = struct.Struct(self.fld.fmt)
 

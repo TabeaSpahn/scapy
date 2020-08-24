@@ -18,9 +18,9 @@ from scapy.packet import Packet, bind_layers
 # STANDARD COMMANDS
 
 class Connect(Packet):
-    commands = {0x00: 'NORMAL', 0x01: 'USER_DEFINED'}
+    commands = {0x00: "NORMAL", 0x01: "USER_DEFINED"}
     fields_desc = [
-        ByteEnumField('connection_mode', 0x1, commands),
+        ByteEnumField("connection_mode", 0x1, commands),
     ]
 
 
@@ -46,7 +46,7 @@ class GetCommModeInfo(Packet):
 
 class GetId(Packet):
     """Get identification from slave """
-    types = {0x00: 'ASCII',
+    types = {0x00: "ASCII",
              0x01: "file_name_without_path_and_extension",
              0x02: "file_name_with_path_and_extension",
              0x03: "URL",
@@ -58,9 +58,9 @@ class GetId(Packet):
 class SetRequest(Packet):
     """Request to save to non-volatile memory"""
     fields_desc = [
-        FlagsField('mode', 0, 8, (
-            'store_cal_req', 'store_daq_req', 'clear_daq_req', 'x3', 'x4',
-            'x5', 'x6', 'x7')),
+        FlagsField("mode", 0, 8, (
+            "store_cal_req", "store_daq_req", "clear_daq_req", "x3", "x4",
+            "x5", "x6", "x7")),
         XCPEndiannessField(ShortField("session_configuration_id", 0x00))
     ]
 
@@ -157,7 +157,6 @@ bind_layers(TransportLayerCmd, TransportLayerCmdGetSlaveId,
 class TransportLayerCmdGetDAQId(Packet):
     fields_desc = [
         XCPEndiannessField(ShortField("daq_list_number", 0)),
-        XCPEndiannessField(IntField("can_identifier", 0))
     ]
 
 
@@ -169,9 +168,9 @@ class TransportLayerCmdSetDAQId(Packet):
     sub_command = {
         0xFD: "SET_DAQ_ID",
     }
-    ByteEnumField("sub_command_code", 0xFD, sub_command),
     fields_desc = [
-        XCPEndiannessField((ShortField("daq_list_number", 0))),
+        XCPEndiannessField(ShortField("daq_list_number", 0)),
+        XCPEndiannessField(IntField("can_identifier", 0))
     ]
 
 
@@ -201,17 +200,10 @@ class Download(Packet):
     ]
 
 
-class DownloadNext(Packet):
-    # Download from master to slave (Block Mode)
-    fields_desc = [
-        ByteField("nr_of_data_elements", 0),
-        ConditionalField(
-            StrLenField("alignment", "", length_from=lambda pkt: get_ag() - 2),
-            lambda pkt: get_ag() > 2),
-        StrLenField("data_elements", "",
-                    length_from=lambda pkt: get_max_cto() - 2 if get_ag() == 1
-                    else get_max_cto() - get_ag()),
-    ]
+class DownloadNext(Download):
+    # Used for the download from master to slave in block mode
+    # Same as "Download", but with different command code
+    pass
 
 
 class DownloadMax(Packet):
@@ -250,8 +242,8 @@ class ModifyBits(Packet):
 class SetCalPage(Packet):
     """Set calibration page"""
     fields_desc = [
-        FlagsField('mode', 0, 8,
-                   ['ecu', 'xcp', 'x2', 'x3', 'x4', 'x5', 'x6', 'all']),
+        FlagsField("mode", 0, 8,
+                   ["ecu", "xcp", "x2", "x3", "x4", "x5", "x6", "all"]),
         ByteField("data_segment_num", 0),
         ByteField("data_page_num", 0)
     ]
@@ -299,8 +291,8 @@ class GetPageInfo(Packet):
 class SetSegmentMode(Packet):
     """Set mode for a SEGMENT"""
     fields_desc = [
-        FlagsField('mode', 0, 8,
-                   ['freeze', 'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7']),
+        FlagsField("mode", 0, 8,
+                   ["freeze", "x1", "x2", "x3", "x4", "x5", "x6", "x7"]),
         ByteField("segment_number", 0)
     ]
 
@@ -323,8 +315,6 @@ class CopyCalPage(Packet):
         ByteField("segment_num_dst", 0),
         ByteField("page_num_dst", 0)
     ]
-
-    # Cyclic Data exchange Basic commands
 
 
 class SetDaqPtr(Packet):
@@ -350,9 +340,9 @@ class WriteDaq(Packet):
 class SetDaqListMode(Packet):
     """Set mode for DAQ list """
     fields_desc = [
-        FlagsField('mode', 0, 8,
-                   ['x0', 'direction', 'x2', 'x3', 'timestamp', 'pid_off',
-                    'x6', 'x7']),
+        FlagsField("mode", 0, 8,
+                   ["x0", "direction", "x2", "x3", "timestamp", "pid_off",
+                    "x6", "x7"]),
         XCPEndiannessField(ShortField("daq_list_num", 0)),
         XCPEndiannessField(ShortField("event_channel_num", 0)),
         ByteField("transmission_rate_prescaler", 0),
@@ -483,17 +473,10 @@ class ProgramClear(Packet):
     ]
 
 
-class Program(Packet):
+class Program(Download):
     """Program a non-volatile memory segment"""
-    fields_desc = [
-        ByteField("nr_data_element", 0),
-        ConditionalField(
-            StrLenField("alignment", "", length_from=lambda pkt: get_ag() - 2),
-            lambda pkt: get_ag() > 2),
-        StrLenField("data_elements", "",
-                    length_from=lambda pkt: get_max_cto() - 2 if get_ag() == 1
-                    else get_max_cto() - get_ag()),
-    ]
+    # Same structure as "Download", but with different command code
+    pass
 
 
 class ProgramReset(Packet):
@@ -533,29 +516,16 @@ class ProgramFormat(Packet):
     ]
 
 
-class ProgramNext(Packet):
+class ProgramNext(Download):
     """Program a non-volatile memory segment (Block Mode) """
-    fields_desc = [
-        ByteField("len", 0),
-        ConditionalField(StrLenField("alignment", "",
-                                     length_from=lambda pkt:
-                                     pkt.nr_of_data_elements - 2),
-                         lambda pkt: pkt.nr_of_data_elements > 2),
-        StrLenField("data_elements", "",
-                    length_from=lambda pkt: get_max_cto() - 2 if get_ag() == 1
-                    else get_max_cto() - get_ag()),
-    ]
+    # Same structure as "Download", but with different command code
+    pass
 
 
-class ProgramMax(Packet):
+class ProgramMax(DownloadMax):
     """ Program a non-volatile memory segment (fixed size) """
-    fields_desc = [
-        ConditionalField(
-            StrLenField("alignment", "", length_from=lambda _: get_ag() - 1),
-            lambda _: get_ag() > 1),
-        StrLenField("data_elements", "",
-                    length_from=lambda _: get_max_cto() - (get_ag() * 2 - 1))
-    ]
+    # Same as "DownloadMax", but with different command code
+    pass
 
 
 class ProgramVerify(Packet):
