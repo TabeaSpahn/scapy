@@ -13,6 +13,8 @@ import sys
 from scapy.contrib.automotive.xcp.scanner import XCPOnCANScanner
 from scapy.contrib.automotive.xcp.xcp import XCPOnCAN
 from scapy.contrib.cansocket import CANSocket
+
+
 # TOOD: rewrite tests and add documentation
 
 class ScannerParams:
