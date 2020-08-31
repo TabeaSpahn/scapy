@@ -35,16 +35,16 @@ iface0 = "vcan0"
 
 print('setting up CAN')
 
-if 0 != call("cansend %s 000#" % iface0, shell=True):
+if 0 != call(["cansend", iface0,  "000#"]):
     # vcan0 is not enabled
-    if 0 != call("sudo modprobe vcan", shell=True):
+    if 0 != call(["sudo", "modprobe", "vcan"]):
         raise Exception("modprobe vcan failed")
-    if 0 != call("sudo ip link add name %s type vcan" % iface0, shell=True):
+    if 0 != call(["sudo", "ip", "link", "add", "name", iface0, "type", "vcan"]):
         print("add %s failed: Maybe it was already up?" % iface0)
-    if 0 != call("sudo ip link set dev %s up" % iface0, shell=True):
+    if 0 != call(["sudo", "ip", "link", "set", "dev", iface0, "up"]):
         raise Exception("could not bring up %s" % iface0)
 
-if 0 != call("cansend %s 000#" % iface0, shell=True):
+if 0 != call(["cansend", iface0,  "000#"]):
     raise Exception("cansend doesn't work")
 
 print("CAN should work now")
@@ -196,5 +196,5 @@ sock2.close()
 = Delete vcan interfaces
 ~ vcan_socket needs_root linux
 
-if 0 != call("sudo ip link delete %s" % iface0, shell=True):
+if 0 != call(["sudo", "ip", "link", "delete", iface0]):
     raise Exception("%s could not be deleted" % iface0)
