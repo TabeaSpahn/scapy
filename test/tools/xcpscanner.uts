@@ -1,5 +1,5 @@
 % Regression tests for the XCP_CAN
-~ python3_only vcan_socket needs_root linux
+~ vcan_socket needs_root linux
 
 # More information at http://www.secdev.org/projects/UTscapy/
 
