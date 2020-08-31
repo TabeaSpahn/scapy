@@ -81,7 +81,7 @@ class XCPOnCANScanner:
             slave_id = \
                 answer["TransportLayerCmdGetSlaveIdResponse"].can_identifier,
 
-            result = XCPScannerResult(slave_id, answer.identifier)
+            result = XCPScannerResult(int(slave_id[0]), answer.identifier)
             all_slaves.append(result)
             self.log_verbose(
                 "Detected XCP slave for broadcast identifier: " + str(

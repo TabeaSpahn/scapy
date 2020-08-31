@@ -136,8 +136,8 @@ sock2.basecls = XCPOnCAN
 scanner = XCPOnCANScanner(sock2, broadcast_id=broadcast_identifier)
 result = scanner.start_scan()
 
-assert result[0]["slave_id"] == ecu_xcp_identifier
-assert result[0]["response_id"] == ecu_response_identifier
+assert result[0].slave_id == ecu_xcp_identifier
+assert result[0].response_id == ecu_response_identifier
 thread.join()
 sock1.close()
 sock2.close()
@@ -185,10 +185,10 @@ scanner = XCPOnCANScanner(sock2, broadcast_id_range=broadcast_identifier_range)
 result = scanner.start_scan()
 
 assert len(result) == 2
-assert result[0]["slave_id"] == ecu_xcp_identifier_1
-assert result[0]["response_id"] == ecu_response_identifier_1
-assert result[1]["slave_id"] == ecu_xcp_identifier_2
-assert result[1]["response_id"] == ecu_response_identifier_2
+assert result[0].slave_id == ecu_xcp_identifier_1
+assert result[0].response_id == ecu_response_identifier_1
+assert result[1].slave_id == ecu_xcp_identifier_2
+assert result[1].response_id == ecu_response_identifier_2
 sock1.close()
 sock2.close()
 
