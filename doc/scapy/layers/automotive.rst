@@ -507,23 +507,6 @@ UDP::
     XCPOnUDP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest(pid="CONNECT") / Connect( connection_mode="NORMAL")
 
 
-XCPonCANScanner
----------------
-
-XCPonCANScanner is a utility to find the CAN identifiers of ECUs that support XCP.
-
-Interactive shell usage example::
-    >>> conf.contribs['CANSocket'] = {'use-python-can': False}
-    >>> load_layer("can")
-    >>> load_contrib("automotive.xcp.xcp")
-    >>> sock = CANSocket("vcan0")
-    >>> sock.basecls = XCPOnCAN
-    >>> scanner = XCPOnCANScanner(sock)
-    >>> result = scanner.start_scan()
-
-The result includes the slave_id (the identifier of the ECU that receives XCP messages),
-and the response_id (the identifier that the ECU will send XCP messages to).
-
 
 ISOTP
 =====
@@ -785,6 +768,48 @@ Interactive shell usage example::
      <<ISOTPNativeSocket: read/write packets at a given CAN interface using CAN_ISOTP socket > at 0x7f98f912ec50>,
      <<ISOTPNativeSocket: read/write packets at a given CAN interface using CAN_ISOTP socket > at 0x7f98f912e950>,
      <<ISOTPNativeSocket: read/write packets at a given CAN interface using CAN_ISOTP socket > at 0x7f98f906c0d0>]
+
+XCPScanner
+---------------
+
+The XCPScanner is a utility to find the CAN identifiers of ECUs that support XCP.
+
+Commandline usage example::
+
+    python -m scapy.tools.automotive.xcpscanner -h
+    Finds XCP slaves using the XCP Broadcast CAN identifier.
+    (It is recommended to use this tool with python3)
+    required parameters:
+        -c, --channel            Linux SocketCAN interface name, e.g.: vcan0
+    optional arguments:
+        -b, --broadcast_id       XCP Broadcast CAN identifier (in hex)
+        -e, --end=END            End XCP Broadcast CAN identifier End ID (in hex)
+                                    If actual ID is unknown the scan will test broadcast ids between  --start and --end
+        -s, --start=START        Start XCP Broadcast CAN identifier Start ID (in hex)
+                                     If actual ID is unknown the scan will test broadcast ids between  --start and --end
+        -x, --extended_can_ids  Use extended CAN identifiers
+        -v, --verbose           Display information during scan
+        -h, --help              Show this
+
+        Examples:
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -b 500
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -s 50 -e 100
+            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -b 500 -x
+
+
+Interactive shell usage example::
+    >>> conf.contribs['CANSocket'] = {'use-python-can': False}
+    >>> load_layer("can")
+    >>> load_contrib("automotive.xcp.xcp")
+    >>> sock = CANSocket("vcan0")
+    >>> sock.basecls = XCPOnCAN
+    >>> scanner = XCPOnCANScanner(sock)
+    >>> result = scanner.start_scan()
+
+The result includes the slave_id (the identifier of the ECU that receives XCP messages),
+and the response_id (the identifier that the ECU will send XCP messages to).
+
 
 
 UDS
