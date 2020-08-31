@@ -51,17 +51,18 @@ class XCPOnCANScanner:
         """
 
         self.log_verbose("Scan for broadcast id: " + str(identifier))
-        cto_request = XCPOnCAN(identifier=identifier, flags=self.__flags) / \
-                      CTORequest(pid="TRANSPORT_LAYER_CMD") / \
-                      TransportLayerCmd(sub_command_code=0xFF) / \
-                      TransportLayerCmdGetSlaveId()
+        cto_request = XCPOnCAN(identifier=identifier,
+                               flags=self.__flags) / CTORequest(
+            pid="TRANSPORT_LAYER_CMD") / TransportLayerCmd(
+            sub_command_code=0xFF) / TransportLayerCmdGetSlaveId()
 
         cto_responses, _unanswered = self.__socket.sr(cto_request, timeout=3,
                                                       verbose=True, multi=True)
         all_slaves = []
         if len(cto_responses) == 0:
-            self.log_verbose("No XCP slave detected for broadcast identifier: "
-                             + str(identifier))
+            self.log_verbose(
+                "No XCP slave detected for broadcast identifier: " + str(
+                    identifier))
             return []
 
         for pkt_pair in cto_responses:
@@ -82,9 +83,9 @@ class XCPOnCANScanner:
 
             result = XCPScannerResult(slave_id, answer.identifier)
             all_slaves.append(result)
-            self.log_verbose("Detected XCP slave for broadcast identifier: "
-                             + str(identifier) +
-                             "\nResponse: " + str(result))
+            self.log_verbose(
+                "Detected XCP slave for broadcast identifier: " + str(
+                    identifier) + "\nResponse: " + str(result))
 
         return all_slaves
 
