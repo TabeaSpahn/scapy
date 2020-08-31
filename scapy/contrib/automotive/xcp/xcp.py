@@ -171,7 +171,7 @@ class CTORequest(Packet):
         0xE6: "SET_SEGMENT_MODE",
         0xE5: "GET_SEGMENT_MODE",
         0xE4: "COPY_CAL_PAGE",
-        # Periodic data exchange – basics
+        # Periodic data exchange basics
         0xE2: "SET_DAQ_PTR",
         0xE1: "WRITE_DAQ",
         0xE0: "SET_DAQ_LIST_MODE",
@@ -185,9 +185,9 @@ class CTORequest(Packet):
         0xD9: "GET_DAQ_RESOLUTION_INFO",
         0xD8: "GET_DAQ_LIST_INFO",
         0xD7: "GET_DAQ_EVENT_INFO",
-        # Periodic data exchange – static configuration
+        # Periodic data exchange static configuration
         0xE3: "CLEAR_DAQ_LIST",
-        # Cyclic data exchange – dynamic configuration
+        # Cyclic data exchange dynamic configuration
         0xD6: "FREE_DAQ",
         0xD5: "ALLOC_DAQ",
         0xD4: "ALLOC_ODT",
