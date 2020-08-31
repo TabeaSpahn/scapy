@@ -777,25 +777,32 @@ The XCPScanner is a utility to find the CAN identifiers of ECUs that support XCP
 Commandline usage example::
 
     python -m scapy.tools.automotive.xcpscanner -h
-    Finds XCP slaves using the XCP Broadcast CAN identifier.
-    (It is recommended to use this tool with python3)
-    required parameters:
-        -c, --channel            Linux SocketCAN interface name, e.g.: vcan0
+    Finds XCP slaves using the XCP Broadcast-CAN identifier.
+
+    positional arguments:
+      channel               Linux SocketCAN interface name, e.g.: vcan0
+
     optional arguments:
-        -b, --broadcast_id       XCP Broadcast CAN identifier (in hex)
-        -e, --end=END            End XCP Broadcast CAN identifier End ID (in hex)
-                                    If actual ID is unknown the scan will test broadcast ids between  --start and --end
-        -s, --start=START        Start XCP Broadcast CAN identifier Start ID (in hex)
-                                     If actual ID is unknown the scan will test broadcast ids between  --start and --end
-        -x, --extended_can_ids  Use extended CAN identifiers
-        -v, --verbose           Display information during scan
-        -h, --help              Show this
+      -h, --help            show this help message and exit
+      --broadcast_id BROADCAST_ID, -b BROADCAST_ID
+                            XCP Broadcast CAN identifier (in hex)
+      --start START, -s START
+                            Start XCP Broadcast CAN identifier Start ID (in hex)
+                            If actual ID is unknown the scan will test broadcast
+                            ids between --start and --end
+      --end END, -e END     End XCP Broadcast CAN identifier End ID (in hex) If
+                            actual ID is unknown the scan will test broadcast ids
+                            between --start and --end
+      --extended_can_ids EXTENDED_CAN_IDS, -x EXTENDED_CAN_IDS
+                            Use extended CAN identifiers
+      --verbose VERBOSE, -v VERBOSE
+                            Display information during scan
 
         Examples:
-            python3.6 -m scapy.tools.automotive.xcpscanner -c can0
-            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -b 500
-            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -s 50 -e 100
-            python3.6 -m scapy.tools.automotive.xcpscanner -c can0 -b 500 -x
+            python3.6 -m scapy.tools.automotive.xcpscanner can0
+            python3.6 -m scapy.tools.automotive.xcpscanner can0 -b 500
+            python3.6 -m scapy.tools.automotive.xcpscanner can0 -s 50 -e 100
+            python3.6 -m scapy.tools.automotive.xcpscanner can0 -b 500 -x
 
 
 Interactive shell usage example::
