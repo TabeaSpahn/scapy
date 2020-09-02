@@ -9,10 +9,10 @@ from logging import warning
 
 from scapy.config import conf
 from scapy.contrib.automotive.xcp.utils import get_max_cto, get_ag, \
-    XCPEndiannessField
+    XCPEndiannessField, StrVarLenField
 from scapy.fields import ByteEnumField, ByteField, ShortField, StrLenField, \
     FlagsField, IntField, ThreeBytesField, ConditionalField, XByteField, \
-    StrField, LEShortField, XIntField
+    StrField, LEShortField, XIntField, FieldLenField
 from scapy.packet import Packet
 
 
@@ -135,17 +135,18 @@ class IdPositiveResponse(Packet):
     fields_desc = [
         ByteField("mode", 0),
         XCPEndiannessField(ShortField("reserved", 0)),
-        XCPEndiannessField(IntField("length", 0)),
-        ConditionalField(
-            StrLenField("element", "", length_from=lambda pkt: get_ag()),
-            lambda pkt: pkt.length > 0),
+        XCPEndiannessField(FieldLenField("length", None, length_of="element",
+                                         fmt="I")),
+        StrVarLenField("element", b"", length_from=lambda p: p.length,
+                       max_length=lambda pkt: get_ag())
     ]
 
 
 class SeedPositiveResponse(Packet):
     fields_desc = [
-        ByteField("seed_length", 0),
-        StrLenField("seed", "", length_from=lambda _: get_max_cto() - 2)
+        FieldLenField("seed_length", None, length_of="seed", fmt="B"),
+        StrVarLenField("seed", b"", length_from=lambda p: p.seed_length,
+                       max_length=lambda: get_max_cto() - 2)
     ]
 
 

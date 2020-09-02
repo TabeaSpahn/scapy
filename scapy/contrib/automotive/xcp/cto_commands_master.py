@@ -6,10 +6,10 @@
 # scapy.contrib.status = skip
 
 from scapy.contrib.automotive.xcp.utils import get_ag, get_max_cto, \
-    XCPEndiannessField
+    XCPEndiannessField, StrVarLenField
 from scapy.fields import ByteEnumField, ByteField, ShortField, StrLenField, \
     IntField, ThreeBytesField, FlagsField, ConditionalField, XByteField, \
-    XIntField
+    XIntField, FieldLenField
 from scapy.packet import Packet, bind_layers
 
 
@@ -78,8 +78,9 @@ class GetSeed(Packet):
 class Unlock(Packet):
     # Send key for unlocking a protected resource
     fields_desc = [
-        ByteField("len", 0),
-        StrLenField("seed", "", length_from=lambda _: get_max_cto() - 2)
+        FieldLenField("len", None, length_of="seed", fmt="B"),
+        StrVarLenField("seed", "", length_from=lambda p: p.len,
+                       max_length=lambda: get_max_cto() - 2)
     ]
 
 
@@ -220,12 +221,12 @@ class DownloadMax(Packet):
 class ShortDownload(Packet):
     # Download from master to slave (short version)
     fields_desc = [
-        ByteField("len", 0),
+        FieldLenField("len", None, length_of="data_elements", fmt="B"),
         ByteField("reserved", 0),
         ByteField("address_extension", 0),
         XCPEndiannessField(IntField("address", 0)),
-        StrLenField("data_elements", "",
-                    length_from=lambda _: get_max_cto() - 8)
+        StrVarLenField("data_elements", "", length_from=lambda p: p.len,
+                       max_length=lambda: get_max_cto() - 8)
     ]
 
 

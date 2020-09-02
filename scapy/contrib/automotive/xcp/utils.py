@@ -9,6 +9,8 @@ import struct
 from logging import warning
 
 from scapy.config import conf
+from scapy.fields import StrLenField
+from scapy.volatile import RandBin, RandNum
 
 
 def get_max_cto():
@@ -116,3 +118,8 @@ class XCPEndiannessField(object):
 
     def __getattr__(self, attr):
         return getattr(self.fld, attr)
+
+
+class StrVarLenField(StrLenField):
+    def randval(self):
+        return RandBin(RandNum(0, self.max_length() or 1200))
