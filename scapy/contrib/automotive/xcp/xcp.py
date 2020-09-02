@@ -91,12 +91,7 @@ class XCPOnCAN(CAN):
 
 class XCPOnUDP(UDP):
     name = 'Universal calibration and measurement protocol on Ethernet'
-    fields_desc = [
-        ShortEnumField("sport", 53, UDP_SERVICES),
-        ShortEnumField("dport", 53, UDP_SERVICES),
-        ShortField("len", None),
-        XShortField("chksum", None),
-        #  XCP Header
+    fields_desc = UDP.fields_desc + [
         ShortField('length', None),
         ShortField('ctr', 0),  # counter
     ]
@@ -105,19 +100,7 @@ class XCPOnUDP(UDP):
 class XCPOnTCP(TCP):
     name = 'Universal calibration and measurement protocol on Ethernet'
 
-    fields_desc = [
-        ShortEnumField("sport", 20, TCP_SERVICES),
-        ShortEnumField("dport", 80, TCP_SERVICES),
-        IntField("seq", 0),
-        IntField("ack", 0),
-        BitField("dataofs", None, 4),
-        BitField("reserved", 0, 3),
-        FlagsField("flags", 0x2, 9, "FSRPAUECN"),
-        ShortField("window", 8192),
-        XShortField("chksum", None),
-        ShortField("urgptr", 0),
-        TCPOptionsField("options", ""),
-        #  XCP Header
+    fields_desc = TCP.fields_desc + [
         ShortField('length', None),
         ShortField('ctr', 0),  # counter
     ]
