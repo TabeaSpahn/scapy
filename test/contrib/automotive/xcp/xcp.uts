@@ -17,7 +17,7 @@ from scapy.main import load_layer
 
 = Load module
 
-load_layer("can")
+load_layer("can", globals_dict=globals())
 load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = test_get_com_mode_info
@@ -588,7 +588,7 @@ from scapy.main import load_layer
 
 = Load module
 
-load_layer("can")
+load_layer("can",  globals_dict=globals())
 load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = Global variables
@@ -713,8 +713,8 @@ from scapy.main import load_layer
 
 = Load module
 
-load_layer("can")
-load_layer("automotive.xcp.xcp",  globals_dict=globals())
+load_layer("can", globals_dict=globals())
+load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = CONNECT
 
