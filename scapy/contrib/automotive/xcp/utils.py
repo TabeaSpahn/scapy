@@ -91,13 +91,13 @@ def get_daq_data_field_length():
 
 # Idea taken from scapy/scapy/contrib/dce_rpc.py
 class XCPEndiannessField(object):
-    """Field which change the endianness of a sub-field"""
+    """Field which changes the endianness of a sub-field"""
     __slots__ = ["fld"]
 
     def __init__(self, fld):
         self.fld = fld
 
-    def set_endianess(self):
+    def set_endianness(self):
         """Add the endianness to the format"""
         byte_oder = conf.contribs['XCP']['byte_order']
         endianness = ">" if byte_oder == 1 else "<"
@@ -106,12 +106,12 @@ class XCPEndiannessField(object):
         self.fld.struct = struct.Struct(self.fld.fmt)
 
     def getfield(self, pkt, s):
-        self.set_endianess()
+        self.set_endianness()
 
         return self.fld.getfield(pkt, s)
 
     def addfield(self, pkt, s, val):
-        self.set_endianess()
+        self.set_endianness()
         return self.fld.addfield(pkt, s, val)
 
     def __getattr__(self, attr):
