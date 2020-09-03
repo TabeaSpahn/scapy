@@ -92,7 +92,7 @@ class SetMta(Packet):
         # "reserved"
         # http://read.pudn.com/downloads192/doc/comm/903802/XCP%20-Part%205-%20Example%20Communication%20Sequences%20-1.0.pdf # noqa: E501
         # --> 2 bytes
-        XCPEndiannessField(ShortField("Reserved", 0)),
+        XCPEndiannessField(ShortField("reserved", 0)),
         ByteField("address_extension", 0),
         XCPEndiannessField(XIntField("address", 0))
     ]
