@@ -50,7 +50,7 @@ def parse_inputs():
                         help='XCP Broadcast CAN identifier (in hex)')
     parser.add_argument('--start', '-s',
                         help='Start XCP Broadcast CAN identifier Start ID '
-                             '(in hex).\n' 
+                             '(in hex).\n'
                              'If actual ID is unknown the scan will '
                              'test broadcast ids between --start and --end '
                              '(inclusive)')
