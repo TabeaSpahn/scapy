@@ -581,7 +581,6 @@ import six
 from scapy.consts import LINUX
 from scapy.contrib.automotive.xcp.cto_commands_master import Connect
 from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse
-from scapy.contrib.cansocket import CANSocket
 from scapy.main import load_layer
 
 = Load module
@@ -613,13 +612,19 @@ if 0 != call(["cansend", iface0,  "000#"]):
 print("CAN should work now")
 
 
-= Define new_can_socket0
-if LINUX:
-    if six.PY3:
-        new_can_socket0 = lambda: CANSocket(iface0)
-    else:
-        new_can_socket0 = lambda: CANSocket(bustype='socketcan', channel=iface0, bitrate=250000, timeout=0.01)
+= Define new_can_socket0 for root and linux
+~ vcan_socket needs_root linux
+if six.PY3 and LINUX:
+    from scapy.contrib.cansocket_native import CANSocket
+    new_can_socket0 = lambda: CANSocket(iface0)
 else:
+    from scapy.contrib.cansocket_python_can import CANSocket
+    new_can_socket0 = lambda: CANSocket(bustype='socketcan', channel=iface0, bitrate=250000, timeout=0.01)
+
+= Define new_can_socket0 without root or linux
+if "new_can_socket0" not in globals():
+    print("fallback")
+    from scapy.contrib.cansocket_python_can import CANSocket
     new_can_socket0 = lambda: CANSocket(bustype='virtual', channel=iface0, timeout=0.01)
 
 
