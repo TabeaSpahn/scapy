@@ -45,17 +45,19 @@ def parse_inputs():
 
     parser = argparse.ArgumentParser()
     parser.description = "Finds XCP slaves using the XCP Broadcast-CAN " \
-                         "identifier. (Use with python3 only"
+                         "identifier. (Use with python3 only)"
     parser.add_argument('--broadcast_id', '-b',
                         help='XCP Broadcast CAN identifier (in hex)')
     parser.add_argument('--start', '-s',
                         help='Start XCP Broadcast CAN identifier Start ID '
                              '(in hex)\nIf actual ID is unknown the scan will '
-                             'test broadcast ids between  --start and --end')
+                             'test broadcast ids between --start and --end '
+                             '(inclusive)')
     parser.add_argument('--end', '-e',
                         help='End XCP Broadcast CAN identifier End ID (in hex)'
                              '\nIf actual ID is unknown the scan will test '
-                             'broadcast ids between  --start and --end')
+                             'broadcast ids between --start and --end '
+                             '(inclusive)')
     parser.add_argument('channel',
                         help='Linux SocketCAN interface name, e.g.: vcan0')
     parser.add_argument('--extended_can_ids', '-x', type=bool,
@@ -82,7 +84,7 @@ def parse_inputs():
             scanner_params.broadcast_id_range[0] >= \
             scanner_params.broadcast_id_range[1]:
         parser.error(
-            "Start identifier must be smaller than the end identifier")
+            "Start identifier must be smaller than the end identifier.")
         sys.exit(1)
 
     return scanner_params

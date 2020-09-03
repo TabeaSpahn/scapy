@@ -97,13 +97,13 @@ class XCPOnCANScanner:
                 self.broadcast_id))
             return self.broadcast_get_slave_id(self.broadcast_id)
 
-        broadcast_id_range = self.broadcast_id_range if \
-            self.broadcast_id_range else (0, 2048)
+        broadcast_id_range = self.broadcast_id_range or (0, 0x7ff)
 
         self.log_verbose("Start scan with broadcast id in range: " + str(
             self.broadcast_id_range))
 
-        for identifier in range(broadcast_id_range[0], broadcast_id_range[1]):
+        for identifier in range(broadcast_id_range[0],
+                                broadcast_id_range[1] + 1):
             ids = self.broadcast_get_slave_id(identifier)
             if len(ids) > 0:
                 return ids

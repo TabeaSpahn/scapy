@@ -789,10 +789,10 @@ Commandline usage example::
       --start START, -s START
                             Start XCP Broadcast CAN identifier Start ID (in hex)
                             If actual ID is unknown the scan will test broadcast
-                            ids between --start and --end
+                            ids between --start and --end (inclusive)
       --end END, -e END     End XCP Broadcast CAN identifier End ID (in hex) If
                             actual ID is unknown the scan will test broadcast ids
-                            between --start and --end
+                            between --start and --end (inclusive)
       --extended_can_ids EXTENDED_CAN_IDS, -x EXTENDED_CAN_IDS
                             Use extended CAN identifiers
       --verbose VERBOSE, -v VERBOSE
