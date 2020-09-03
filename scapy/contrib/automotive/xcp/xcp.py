@@ -51,18 +51,18 @@ from scapy.layers.can import CAN
 from scapy.layers.inet import UDP, TCP, TCPOptionsField
 from scapy.packet import Packet, bind_layers, bind_bottom_up
 
-if 'XCP' not in conf.contribs:
-    conf.contribs['XCP'] = {}
+if "XCP" not in conf.contribs:
+    conf.contribs["XCP"] = {}
 
 # 0 stands for Intel/little-endian format, 1 for Motorola/big-endian format
-conf.contribs['XCP']['byte_order'] = 1
-conf.contribs['XCP']['allow_byte_order_change'] = True
-conf.contribs['XCP']['Address_Granularity_Byte'] = None  # Can be 1, 2 or 4
-conf.contribs['XCP']['allow_ag_change'] = True
+conf.contribs["XCP"]["byte_order"] = 1
+conf.contribs["XCP"]["allow_byte_order_change"] = True
+conf.contribs["XCP"]["Address_Granularity_Byte"] = None  # Can be 1, 2 or 4
+conf.contribs["XCP"]["allow_ag_change"] = True
 
-conf.contribs['XCP']['MAX_CTO'] = None
-conf.contribs['XCP']['MAX_DTO'] = None
-conf.contribs['XCP']['allow_cto_and_dto_change'] = True
+conf.contribs["XCP"]["MAX_CTO"] = None
+conf.contribs["XCP"]["MAX_DTO"] = None
+conf.contribs["XCP"]["allow_cto_and_dto_change"] = True
 
 
 # Specifications from:
@@ -75,14 +75,14 @@ conf.contribs['XCP']['allow_cto_and_dto_change'] = True
 # XCP on USB is left out because it has "no practical meaning"
 # XCP on Lin is left out because it has no official specification
 class XCPOnCAN(CAN):
-    name = 'Universal calibration and measurement protocol on CAN'
+    name = "Universal calibration and measurement protocol on CAN"
     fields_desc = [
-        FlagsField('flags', 0, 3, ['error',
-                                   'remote_transmission_request',
-                                   'extended']),
-        XBitField('identifier', 0, 29),
-        ByteField('length', 8),
-        ThreeBytesField('reserved', 0),
+        FlagsField("flags", 0, 3, ["error",
+                                   "remote_transmission_request",
+                                   "extended"]),
+        XBitField("identifier", 0, 29),
+        ByteField("length", 8),
+        ThreeBytesField("reserved", 0),
     ]
 
     def extract_padding(self, p):
@@ -90,23 +90,23 @@ class XCPOnCAN(CAN):
 
 
 class XCPOnUDP(UDP):
-    name = 'Universal calibration and measurement protocol on Ethernet'
+    name = "Universal calibration and measurement protocol on Ethernet"
     fields_desc = UDP.fields_desc + [
-        ShortField('length', None),
-        ShortField('ctr', 0),  # counter
+        ShortField("length", None),
+        ShortField("ctr", 0),  # counter
     ]
 
 
 class XCPOnTCP(TCP):
-    name = 'Universal calibration and measurement protocol on Ethernet'
+    name = "Universal calibration and measurement protocol on Ethernet"
 
     fields_desc = TCP.fields_desc + [
-        ShortField('length', None),
-        ShortField('ctr', 0),  # counter
+        ShortField("length", None),
+        ShortField("ctr", 0),  # counter
     ]
 
     def answers(self, other):
-        if other.__class__ != self.__class__:
+        if not isinstance(other, XCPOnTCP):
             return 0
         if isinstance(other.payload, CTORequest) and isinstance(self.payload,
                                                                 CTOResponse):
@@ -114,10 +114,10 @@ class XCPOnTCP(TCP):
 
 
 class XCPOnCANTail(Packet):
-    name = 'XCP Tail on CAN'
+    name = "XCP Tail on CAN"
 
     fields_desc = [
-        StrField('control_field', "")
+        StrField("control_field", "")
     ]
 
 
@@ -191,10 +191,10 @@ class CTORequest(Packet):
 
     for pid in range(0, 200):
         pids[pid] = "DTO"
-    name = 'Command Transfer Object Request'
+    name = "Command Transfer Object Request"
 
     fields_desc = [
-        ByteEnumField('pid', 0x01, pids),
+        ByteEnumField("pid", 0x01, pids),
     ]
 
 
@@ -281,7 +281,7 @@ bind_layers(CTORequest, ProgramVerify, pid=0xC8)
 class DTO(Packet):
     name = "Data transfer object"
     fields_desc = [
-        ConditionalField(XByteField('fill', 0x00),
+        ConditionalField(XByteField("fill", 0x00),
                          lambda _: identification_filed_needs_alignment()),
         ConditionalField(
             StrLenField("daq", "", length_from=lambda _: get_daq_length()),
@@ -310,10 +310,10 @@ class CTOResponse(Packet):
         0xFD: "EV",
         0xFC: "SERV",
     }
-    name = 'Command Transfer Object Response'
+    name = "Command Transfer Object Response"
 
     fields_desc = [
-        ByteEnumField('packet_code', 0xFF, packet_codes),
+        ByteEnumField("packet_code", 0xFF, packet_codes),
     ]
 
     def __init__(self, *args, **kwargs):

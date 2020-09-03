@@ -45,7 +45,7 @@ class GetCommModeInfo(Packet):
 
 
 class GetId(Packet):
-    """Get identification from slave """
+    """Get identification from slave"""
     types = {0x00: "ASCII",
              0x01: "file_name_without_path_and_extension",
              0x02: "file_name_with_path_and_extension",
@@ -231,7 +231,7 @@ class ShortDownload(Packet):
 
 
 class ModifyBits(Packet):
-    # Modify  bits
+    # Modify bits
     fields_desc = [
         ByteField("shift_value", 0),
         XCPEndiannessField(ShortField("and_mask", 0)),
@@ -281,7 +281,7 @@ class GetSegmentInfo(Packet):
 
 
 class GetPageInfo(Packet):
-    """ Get specific information for a PAGE """
+    """Get specific information for a PAGE"""
     fields_desc = [
         ByteField("reserved", 0),
         ByteField("segment_number", 0),
@@ -299,7 +299,7 @@ class SetSegmentMode(Packet):
 
 
 class GetSegmentMode(Packet):
-    """Get mode for a SEGMENT """
+    """Get mode for a SEGMENT"""
     fields_desc = [
         ByteField("reserved", 0),
         ByteField("segment_number", 0)
@@ -329,7 +329,7 @@ class SetDaqPtr(Packet):
 
 
 class WriteDaq(Packet):
-    """Data acquisition and stimulation, static, mandatory """
+    """Data acquisition and stimulation, static, mandatory"""
     fields_desc = [
         ByteField("bit_offset", 0),
         ByteField("size_of_daq_element", 0),
@@ -339,7 +339,7 @@ class WriteDaq(Packet):
 
 
 class SetDaqListMode(Packet):
-    """Set mode for DAQ list """
+    """Set mode for DAQ list"""
     fields_desc = [
         FlagsField("mode", 0, 8,
                    ["x0", "direction", "x2", "x3", "timestamp", "pid_off",
@@ -360,7 +360,7 @@ class GetDaqListMode(Packet):
 
 
 class StartStopDaqList(Packet):
-    """Start /stop/select DAQ list"""
+    """Start/stop/select DAQ list"""
     mode_enum = {0x00: "stop", 0x01: "start", 0x02: "select"}
     fields_desc = [
         ByteEnumField("mode", 0, mode_enum),
@@ -382,7 +382,7 @@ class ReadDaq(Packet):
 
 
 class GetDaqClock(Packet):
-    """ Get DAQ clock from slave """
+    """Get DAQ clock from slave"""
     pass
 
 
@@ -397,7 +397,7 @@ class GetDaqResolutionInfo(Packet):
 
 
 class GetDaqListInfo(Packet):
-    """ Get specific information for a DAQ list """
+    """Get specific information for a DAQ list"""
     fields_desc = [
         ByteField("reserved", 0),
         XCPEndiannessField(ShortField("daq_list_num", 0))
@@ -405,7 +405,7 @@ class GetDaqListInfo(Packet):
 
 
 class GetDaqEventInfo(Packet):
-    """Get specific information for an event channel """
+    """Get specific information for an event channel"""
     fields_desc = [
         ByteField("reserved", 0),
         XCPEndiannessField(ShortField("event_channel_num", 0))
@@ -431,7 +431,7 @@ class FreeDaq(Packet):
 
 
 class AllocDaq(Packet):
-    """ Allocate DAQ lists """
+    """Allocate DAQ lists"""
     fields_desc = [
         ByteField("reserved", 0),
         XCPEndiannessField(ShortField("daq_count", 0))
@@ -448,7 +448,7 @@ class AllocOdt(Packet):
 
 
 class AllocOdtEntry(Packet):
-    """Allocate ODT entries to an ODT """
+    """Allocate ODT entries to an ODT"""
     fields_desc = [
         ByteField("reserved", 0),
         XCPEndiannessField(ShortField("daq_list_num", 0)),
@@ -456,8 +456,8 @@ class AllocOdtEntry(Packet):
         ByteField("odt_entries_count", 0)
     ]
 
-    # Flash Programming commands
 
+# Flash Programming commands
 
 class ProgramStart(Packet):
     """Indicate the beginning of a programming sequence"""
@@ -465,7 +465,7 @@ class ProgramStart(Packet):
 
 
 class ProgramClear(Packet):
-    """Clear a part of non-volatile memory """
+    """Clear a part of non-volatile memory"""
     access_mode = {0x00: "absolute_access", 0x01: "functional_access"}
     fields_desc = [
         ByteEnumField("mode", 0, access_mode),
@@ -518,13 +518,13 @@ class ProgramFormat(Packet):
 
 
 class ProgramNext(Download):
-    """Program a non-volatile memory segment (Block Mode) """
+    """Program a non-volatile memory segment (Block Mode)"""
     # Same structure as "Download", but with different command code
     pass
 
 
 class ProgramMax(DownloadMax):
-    """ Program a non-volatile memory segment (fixed size) """
+    """Program a non-volatile memory segment (fixed size)"""
     # Same as "DownloadMax", but with different command code
     pass
 

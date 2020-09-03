@@ -21,7 +21,7 @@ from scapy.packet import Packet
 # STANDARD COMMANDS
 
 class NegativeResponse(Packet):
-    """ Error Packet """
+    """Error Packet"""
     error_code = {
         0x00: "ERR_CMD_SYNCH",
         0x10: "ERR_CMD_BUSY",
@@ -49,7 +49,7 @@ class NegativeResponse(Packet):
 
 
 class GenericResponse(Packet):
-    """ Command Response packet  """
+    """Command Response packet """
     fields_desc = [
         StrField("command_response_data", "")
     ]
@@ -442,7 +442,7 @@ class SectorInfoPositiveResponse(Packet):
 
 
 class EvPacket(Packet):
-    """ Event packet """
+    """Event packet"""
     event_code = {
         0x00: "EV_RESUME_MODE",
         0x01: "EV_CLEAR_DAQ",
@@ -462,7 +462,7 @@ class EvPacket(Packet):
 
 
 class ServPacket(Packet):
-    """ Service Request packet """
+    """Service Request packet"""
     service_request_code = {
         0x00: "SERV_RESET",
         0x01: "SERV_TEXT",
