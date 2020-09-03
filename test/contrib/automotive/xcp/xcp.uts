@@ -1,5 +1,4 @@
 % Regression tests for the XCP
-~ vcan_socket needs_root linux
 
 # More information at http://www.secdev.org/projects/UTscapy/
 
@@ -11,7 +10,7 @@
 
 from scapy.config import conf
 from scapy.contrib.automotive.xcp.cto_commands_master import Connect, GetCommModeInfo, GetStatus, GetSeed, Unlock, GetId, Upload, GetCalPage, SetMta, BuildChecksum, Download, ShortUpload, CopyCalPage, GetDaqProcessorInfo, GetDaqResolutionInfo, GetDaqEventInfo, GetDaqListInfo, ClearDaqList, AllocDaq, AllocOdt, AllocOdtEntry, SetDaqPtr, WriteDaq, SetDaqListMode, StartStopDaqList, GetDaqClock, StartStopSynch, ProgramStart, ProgramClear, Program
-from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse
+from scapy.contrib.automotive.xcp.xcp import CTORequest, CTOResponse
 from scapy.main import load_layer
 
 
@@ -580,10 +579,9 @@ from subprocess import call
 import six
 
 from scapy.consts import LINUX
-from scapy.contrib.automotive.xcp.cto_commands_master import Connect, TransportLayerCmd, TransportLayerCmdGetSlaveId
-from scapy.contrib.automotive.xcp.scanner import XCPOnCANScanner
-from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse, TransportLayerCmdGetSlaveIdResponse, GenericResponse
-from scapy.contrib.cansocket_python_can import CANSocket
+from scapy.contrib.automotive.xcp.cto_commands_master import Connect
+from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse
+from scapy.contrib.cansocket import CANSocket
 from scapy.main import load_layer
 
 = Load module
@@ -596,9 +594,7 @@ load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 iface0 = "vcan0"
 
 = Initialize a virtual CAN interface
-
-def set_up_virtual_python_can_socket(iface):
-    return CANSocket(bustype='virtual', channel=iface, timeout=0.01)
+~ vcan_socket needs_root linux
 
 print('setting up CAN')
 
@@ -616,19 +612,20 @@ if 0 != call(["cansend", iface0,  "000#"]):
 
 print("CAN should work now")
 
-new_can_socket0 = lambda: CANSocket(bustype='virtual', channel=iface0, timeout=0.01)
 
-if six.PY3 and LINUX:
-    new_can_socket0 = lambda: CANSocket(iface0)
-
-if "python_can" in CANSocket.__module__:
-    new_can_socket0 = lambda: CANSocket(bustype='socketcan', channel=iface0, bitrate=250000, timeout=0.01)
+= Define new_can_socket0
+if LINUX:
+    if six.PY3:
+        new_can_socket0 = lambda: CANSocket(iface0)
+    else:
+        new_can_socket0 = lambda: CANSocket(bustype='socketcan', channel=iface0, bitrate=250000, timeout=0.01)
+else:
+    new_can_socket0 = lambda: CANSocket(bustype='virtual', channel=iface0, timeout=0.01)
 
 
 = verify CAN Socket creation works
 s = new_can_socket0()
 s.close()
-
 
 
 = CONNECT
