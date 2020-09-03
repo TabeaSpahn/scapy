@@ -66,10 +66,9 @@ class ConnectPositiveResponse(Packet):
                     "slave_block_mode", "optional"]),
         ByteField("max_cto", 0),
         ConditionalField(ShortField("max_dto", 0),
-                         lambda p: hasattr(p.comm_mode_basic, "byte_order")),
-        ConditionalField(LEShortField("max_dto", 0),
-                         lambda p: not hasattr(p.comm_mode_basic,
-                                               "byte_order")),
+                         lambda p: p.comm_mode_basic.byte_order),
+        ConditionalField(LEShortField("max_dto_le", 0),
+                         lambda p: not p.comm_mode_basic.byte_order),
         ByteField("xcp_protocol_layer_version_number_msb", 1),
         ByteField("xcp_transport_layer_version_number_msb", 1)
     ]
@@ -86,7 +85,7 @@ class ConnectPositiveResponse(Packet):
 
         if conf.contribs["XCP"]["allow_cto_and_dto_change"]:
             conf.contribs["XCP"]["MAX_CTO"] = self.max_cto
-            conf.contribs["XCP"]["MAX_DTO"] = self.max_dto
+            conf.contribs["XCP"]["MAX_DTO"] = self.max_dto or self.max_dto_le
 
     def get_address_granularity(self):
         comm_mode_basic = self.comm_mode_basic

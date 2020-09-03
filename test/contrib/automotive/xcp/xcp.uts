@@ -561,7 +561,7 @@ cto_request = CTORequest(pid="PROGRAM") / Program(b'\x06\x00\x01\x02\x03\x04\x05
 assert cto_request.pid == 0xd0
 assert bytes(cto_request) == b'\xd0\x06\x00\x01\x02\x03\x04\x05'
 
-assert cto_request['Program'].nr_data_element == 0x06
+assert cto_request['Program'].nr_of_data_elements == 0x06
 assert cto_request['Program'].data_elements == b"\x00\x01\x02\x03\x04\x05"
 
 cto_response = CTOResponse(b'\xff')
@@ -658,7 +658,8 @@ connect_response = cto_response["ConnectPositiveResponse"]
 assert connect_response.resource == 0x15
 assert connect_response.comm_mode_basic == 0xC0
 assert connect_response.max_cto == 8
-assert connect_response.max_cto == 8
+assert connect_response.max_dto is None
+assert connect_response.max_dto_le == 8
 
 assert connect_response.xcp_protocol_layer_version_number_msb == 0x10
 assert connect_response.xcp_transport_layer_version_number_msb == 0x10
@@ -691,6 +692,17 @@ assert conf.contribs['XCP']['byte_order'] == 0
 assert conf.contribs['XCP']['MAX_CTO'] == 8
 assert conf.contribs['XCP']['MAX_DTO'] == 8
 assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
+
+= Endianness test for ConnectPositiveResponse
+
+p = ConnectPositiveResponse(b"\x00\xFF\x01\x00\xFF\x05\x05")
+assert p.max_dto_le is None
+assert p.max_dto == 0xff
+
+p = ConnectPositiveResponse(b"\x00\x00\x01\xFF\x00\x05\x05")
+assert p.max_dto_le == 0xff
+assert p.max_dto is None
+
 
 + Cleanup VCAN
 = Delete vcan interfaces
