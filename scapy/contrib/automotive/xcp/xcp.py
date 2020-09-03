@@ -42,13 +42,11 @@ from scapy.contrib.automotive.xcp.cto_commands_master import Connect, \
 from scapy.contrib.automotive.xcp.utils import get_timestamp_length, \
     identification_filed_needs_alignment, get_daq_length, \
     get_daq_data_field_length
-from scapy.data import UDP_SERVICES, TCP_SERVICES
 from scapy.fields import ByteEnumField, ShortField, XBitField, \
-    ShortEnumField, XShortField, BitField, FlagsField, ByteField, \
-    ThreeBytesField, IntField, StrField, ConditionalField, XByteField, \
-    StrLenField
+    FlagsField, ByteField, ThreeBytesField, StrField, ConditionalField, \
+    XByteField, StrLenField
 from scapy.layers.can import CAN
-from scapy.layers.inet import UDP, TCP, TCPOptionsField
+from scapy.layers.inet import UDP, TCP
 from scapy.packet import Packet, bind_layers, bind_bottom_up
 
 if "XCP" not in conf.contribs:
