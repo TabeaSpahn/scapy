@@ -40,7 +40,7 @@ from scapy.contrib.automotive.xcp.cto_commands_master import Connect, \
     ProgramReset, GetPgmProcessorInfo, GetSectorInfo, ProgramPrepare, \
     ProgramFormat, ProgramNext, ProgramMax, ProgramVerify
 from scapy.contrib.automotive.xcp.utils import get_timestamp_length, \
-    identification_filed_needs_alignment, get_daq_length, \
+    identification_field_needs_alignment, get_daq_length, \
     get_daq_data_field_length
 from scapy.fields import ByteEnumField, ShortField, XBitField, \
     FlagsField, ByteField, ThreeBytesField, StrField, ConditionalField, \
@@ -280,7 +280,7 @@ class DTO(Packet):
     name = "Data transfer object"
     fields_desc = [
         ConditionalField(XByteField("fill", 0x00),
-                         lambda _: identification_filed_needs_alignment()),
+                         lambda _: identification_field_needs_alignment()),
         ConditionalField(
             StrLenField("daq", "", length_from=lambda _: get_daq_length()),
             lambda _: get_daq_length() > 0),

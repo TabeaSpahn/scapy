@@ -51,7 +51,7 @@ def get_timestamp_length():
     return conf.contribs['XCP']['timestamp_size']
 
 
-def identification_filed_needs_alignment():
+def identification_field_needs_alignment():
     identification_field_type_0 = conf.contribs['XCP'][
         'identification_field_type_0']
     identification_field_type_1 = conf.contribs['XCP'][
@@ -84,7 +84,7 @@ def get_daq_data_field_length():
     except KeyError:
         return 0
     data_length -= 1  # pid
-    if identification_filed_needs_alignment():
+    if identification_field_needs_alignment():
         data_length -= 1
     data_length -= get_daq_length()
 
