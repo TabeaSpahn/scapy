@@ -52,30 +52,39 @@ def get_timestamp_length():
 
 
 def identification_field_needs_alignment():
-    identification_field_type_0 = conf.contribs['XCP'][
-        'identification_field_type_0']
-    identification_field_type_1 = conf.contribs['XCP'][
-        'identification_field_type_1']
-    if identification_field_type_1 == 1 and identification_field_type_0 == 1:
-        # relative odt with daq as word (aligned)
-        return True
-    return False
+    try:
+        identification_field_type_0 = conf.contribs['XCP'][
+            'identification_field_type_0']
+        identification_field_type_1 = conf.contribs['XCP'][
+            'identification_field_type_1']
+        if identification_field_type_1 == 1 and \
+                identification_field_type_0 == 1:
+            # relative odt with daq as word (aligned)
+            return True
+        return False
+    except KeyError:
+        return False
 
 
 def get_daq_length():
-    identification_field_type_0 = conf.contribs['XCP'][
-        'identification_field_type_0']
-    identification_field_type_1 = conf.contribs['XCP'][
-        'identification_field_type_1']
+    try:
+        identification_field_type_0 = conf.contribs['XCP'][
+            'identification_field_type_0']
+        identification_field_type_1 = conf.contribs['XCP'][
+            'identification_field_type_1']
 
-    if identification_field_type_1 == 0 and identification_field_type_0 == 0:
-        # absolute odt number
+        if identification_field_type_1 == 0 and \
+                identification_field_type_0 == 0:
+            # absolute odt number
+            return 0
+        if identification_field_type_1 == 0 and \
+                identification_field_type_0 == 1:
+            # relative odt with daq as byte
+            return 1
+        # relative odt with daq as word
+        return 2
+    except KeyError:
         return 0
-    if identification_field_type_1 == 0 and identification_field_type_0 == 1:
-        # relative odt with daq as byte
-        return 1
-    # relative odt with daq as word
-    return 2
 
 
 def get_daq_data_field_length():

@@ -6,8 +6,23 @@
 
 # scapy.contrib.description = Universal calibration and measurement protocol (XCP) # noqa: E501
 # scapy.contrib.status = loads
+import struct
 
-
+from scapy.config import conf
+from scapy.contrib.automotive.xcp.cto_commands_master import Connect, \
+    Disconnect, GetStatus, Synch, GetCommModeInfo, GetId, SetRequest, \
+    GetSeed, Unlock, SetMta, Upload, ShortUpload, BuildChecksum, \
+    TransportLayerCmd, TransportLayerCmdGetSlaveId, \
+    TransportLayerCmdGetDAQId, TransportLayerCmdSetDAQId, UserCmd, Download, \
+    DownloadNext, DownloadMax, ShortDownload, ModifyBits, SetCalPage, \
+    GetCalPage, GetPagProcessorInfo, GetSegmentInfo, GetPageInfo, \
+    SetSegmentMode, GetSegmentMode, CopyCalPage, SetDaqPtr, WriteDaq, \
+    SetDaqListMode, GetDaqListMode, StartStopDaqList, StartStopSynch, \
+    ReadDaq, GetDaqClock, GetDaqProcessorInfo, GetDaqResolutionInfo, \
+    GetDaqListInfo, GetDaqEventInfo, ClearDaqList, FreeDaq, AllocDaq, \
+    AllocOdt, AllocOdtEntry, ProgramStart, ProgramClear, Program, \
+    ProgramReset, GetPgmProcessorInfo, GetSectorInfo, ProgramPrepare, \
+    ProgramFormat, ProgramNext, ProgramMax, ProgramVerify
 from scapy.contrib.automotive.xcp.cto_commands_slave import \
     GenericResponse, NegativeResponse, EvPacket, ServPacket, \
     TransportLayerCmdGetSlaveIdResponse, TransportLayerCmdGetDAQIdResponse, \
@@ -24,21 +39,6 @@ from scapy.contrib.automotive.xcp.cto_commands_slave import \
     DAQResolutionInfoPositiveResponse, DAQListInfoPositiveResponse, \
     DAQEventInfoPositiveResponse, ProgramStartPositiveResponse, \
     PgmProcessorPositiveResponse, SectorInfoPositiveResponse
-from scapy.config import conf
-from scapy.contrib.automotive.xcp.cto_commands_master import Connect, \
-    Disconnect, GetStatus, Synch, GetCommModeInfo, GetId, SetRequest, \
-    GetSeed, Unlock, SetMta, Upload, ShortUpload, BuildChecksum, \
-    TransportLayerCmd, TransportLayerCmdGetSlaveId, \
-    TransportLayerCmdGetDAQId, TransportLayerCmdSetDAQId, UserCmd, Download, \
-    DownloadNext, DownloadMax, ShortDownload, ModifyBits, SetCalPage, \
-    GetCalPage, GetPagProcessorInfo, GetSegmentInfo, GetPageInfo, \
-    SetSegmentMode, GetSegmentMode, CopyCalPage, SetDaqPtr, WriteDaq, \
-    SetDaqListMode, GetDaqListMode, StartStopDaqList, StartStopSynch, \
-    ReadDaq, GetDaqClock, GetDaqProcessorInfo, GetDaqResolutionInfo, \
-    GetDaqListInfo, GetDaqEventInfo, ClearDaqList, FreeDaq, AllocDaq, \
-    AllocOdt, AllocOdtEntry, ProgramStart, ProgramClear, Program, \
-    ProgramReset, GetPgmProcessorInfo, GetSectorInfo, ProgramPrepare, \
-    ProgramFormat, ProgramNext, ProgramMax, ProgramVerify
 from scapy.contrib.automotive.xcp.utils import get_timestamp_length, \
     identification_field_needs_alignment, get_daq_length, \
     get_daq_data_field_length
@@ -61,6 +61,8 @@ conf.contribs["XCP"]["allow_ag_change"] = True
 conf.contribs["XCP"]["MAX_CTO"] = None
 conf.contribs["XCP"]["MAX_DTO"] = None
 conf.contribs["XCP"]["allow_cto_and_dto_change"] = True
+
+conf.contribs['XCP']['timestamp_size'] = 0
 
 
 # Specifications from:
@@ -187,8 +189,8 @@ class CTORequest(Packet):
         0xC8: "PROGRAM_VERIFY",
     }
 
-    for pid in range(0, 200):
-        pids[pid] = "DTO"
+    for pid in range(0, 192):
+        pids[pid] = "STIM"
     name = "Command Transfer Object Request"
 
     fields_desc = [
@@ -295,7 +297,7 @@ class DTO(Packet):
     ]
 
 
-for pid in range(0, 200):
+for pid in range(0, 192):
     bind_layers(CTORequest, DTO, pid=pid)
 
 
@@ -322,6 +324,8 @@ class CTOResponse(Packet):
         Packet.__init__(self, *args, **kwargs)
 
     def guess_payload_class(self, payload):
+        if self.packet_code < 252:
+            return DTO
         return self.payload_cls
 
     def get_cto_cls(self, request):
@@ -385,12 +389,19 @@ class CTOResponse(Packet):
         if not hasattr(request, "pid") or not hasattr(self, "packet_code"):
             return 0
         payload_cls = self.get_cto_cls(request)
+
         if self.payload_cls != payload_cls and \
                 self.payload_cls == GenericResponse:
             data = bytes(self.payload)
-            self.remove_payload()
-            self.add_payload(payload_cls(data))
-            self.payload_cls = payload_cls
+            prev_payload_cls = self.payload_cls
+            try:
+                self.remove_payload()
+                self.add_payload(payload_cls(data))
+                self.payload_cls = payload_cls
+            except struct.error:
+                self.add_payload(prev_payload_cls(data))
+                self.payload_cls = prev_payload_cls
+                return 0
         return 1
 
 
