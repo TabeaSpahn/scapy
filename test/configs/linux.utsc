@@ -7,6 +7,7 @@
     "test/contrib/automotive/obd/*.uts",
     "test/contrib/automotive/gm/*.uts",
     "test/contrib/automotive/bmw/*.uts",
+    "test/contrib/automotive/xcp/*.uts",
     "test/tools/*.uts",
     "test/tls/tests_tls_netaccess.uts"
   ],
