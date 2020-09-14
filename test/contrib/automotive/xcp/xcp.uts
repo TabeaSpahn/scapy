@@ -1,5 +1,4 @@
 % Regression tests for the XCP
-~ vcan_socket needs_root linux
 
 # More information at http://www.secdev.org/projects/UTscapy/
 
@@ -11,13 +10,13 @@
 
 from scapy.config import conf
 from scapy.contrib.automotive.xcp.cto_commands_master import Connect, GetCommModeInfo, GetStatus, GetSeed, Unlock, GetId, Upload, GetCalPage, SetMta, BuildChecksum, Download, ShortUpload, CopyCalPage, GetDaqProcessorInfo, GetDaqResolutionInfo, GetDaqEventInfo, GetDaqListInfo, ClearDaqList, AllocDaq, AllocOdt, AllocOdtEntry, SetDaqPtr, WriteDaq, SetDaqListMode, StartStopDaqList, GetDaqClock, StartStopSynch, ProgramStart, ProgramClear, Program
-from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse
+from scapy.contrib.automotive.xcp.xcp import CTORequest, CTOResponse
 from scapy.main import load_layer
 
 
 = Load module
 
-load_layer("can")
+load_layer("can", globals_dict=globals())
 load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = test_get_com_mode_info
@@ -562,7 +561,7 @@ cto_request = CTORequest(pid="PROGRAM") / Program(b'\x06\x00\x01\x02\x03\x04\x05
 assert cto_request.pid == 0xd0
 assert bytes(cto_request) == b'\xd0\x06\x00\x01\x02\x03\x04\x05'
 
-assert cto_request['Program'].nr_data_element == 0x06
+assert cto_request['Program'].nr_of_data_elements == 0x06
 assert cto_request['Program'].data_elements == b"\x00\x01\x02\x03\x04\x05"
 
 cto_response = CTOResponse(b'\xff')
@@ -580,15 +579,13 @@ from subprocess import call
 import six
 
 from scapy.consts import LINUX
-from scapy.contrib.automotive.xcp.cto_commands_master import Connect, TransportLayerCmd, TransportLayerCmdGetSlaveId
-from scapy.contrib.automotive.xcp.scanner import XCPOnCANScanner
-from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse, TransportLayerCmdGetSlaveIdResponse, GenericResponse
-from scapy.contrib.cansocket_python_can import CANSocket
+from scapy.contrib.automotive.xcp.cto_commands_master import Connect
+from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse
 from scapy.main import load_layer
 
 = Load module
 
-load_layer("can")
+load_layer("can",  globals_dict=globals())
 load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = Global variables
@@ -596,9 +593,7 @@ load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 iface0 = "vcan0"
 
 = Initialize a virtual CAN interface
-
-def set_up_virtual_python_can_socket(iface):
-    return CANSocket(bustype='virtual', channel=iface, timeout=0.01)
+~ vcan_socket needs_root linux
 
 print('setting up CAN')
 
@@ -616,19 +611,26 @@ if 0 != call(["cansend", iface0,  "000#"]):
 
 print("CAN should work now")
 
-new_can_socket0 = lambda: CANSocket(bustype='virtual', channel=iface0, timeout=0.01)
 
+= Define new_can_socket0 for root and linux
+~ vcan_socket needs_root linux
 if six.PY3 and LINUX:
+    from scapy.contrib.cansocket_native import CANSocket
     new_can_socket0 = lambda: CANSocket(iface0)
-
-if "python_can" in CANSocket.__module__:
+else:
+    from scapy.contrib.cansocket_python_can import CANSocket
     new_can_socket0 = lambda: CANSocket(bustype='socketcan', channel=iface0, bitrate=250000, timeout=0.01)
+
+= Define new_can_socket0 without root or linux
+if "new_can_socket0" not in globals():
+    print("fallback")
+    from scapy.contrib.cansocket_python_can import CANSocket
+    new_can_socket0 = lambda: CANSocket(bustype='virtual', channel=iface0, timeout=0.01)
 
 
 = verify CAN Socket creation works
 s = new_can_socket0()
 s.close()
-
 
 
 = CONNECT
@@ -661,7 +663,8 @@ connect_response = cto_response["ConnectPositiveResponse"]
 assert connect_response.resource == 0x15
 assert connect_response.comm_mode_basic == 0xC0
 assert connect_response.max_cto == 8
-assert connect_response.max_cto == 8
+assert connect_response.max_dto is None
+assert connect_response.max_dto_le == 8
 
 assert connect_response.xcp_protocol_layer_version_number_msb == 0x10
 assert connect_response.xcp_transport_layer_version_number_msb == 0x10
@@ -695,6 +698,17 @@ assert conf.contribs['XCP']['MAX_CTO'] == 8
 assert conf.contribs['XCP']['MAX_DTO'] == 8
 assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
 
+= Endianness test for ConnectPositiveResponse
+
+p = ConnectPositiveResponse(b"\x00\xFF\x01\x00\xFF\x05\x05")
+assert p.max_dto_le is None
+assert p.max_dto == 0xff
+
+p = ConnectPositiveResponse(b"\x00\x00\x01\xFF\x00\x05\x05")
+assert p.max_dto_le == 0xff
+assert p.max_dto is None
+
+
 + Cleanup VCAN
 = Delete vcan interfaces
 ~ vcan_socket needs_root linux
@@ -713,8 +727,8 @@ from scapy.main import load_layer
 
 = Load module
 
-load_layer("can")
-load_layer("automotive.xcp.xcp",  globals_dict=globals())
+load_layer("can", globals_dict=globals())
+load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = CONNECT
 

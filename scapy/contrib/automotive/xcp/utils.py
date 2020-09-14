@@ -9,6 +9,8 @@ import struct
 from logging import warning
 
 from scapy.config import conf
+from scapy.fields import StrLenField
+from scapy.volatile import RandBin, RandNum
 
 
 def get_max_cto():
@@ -49,7 +51,7 @@ def get_timestamp_length():
     return conf.contribs['XCP']['timestamp_size']
 
 
-def identification_filed_needs_alignment():
+def identification_field_needs_alignment():
     identification_field_type_0 = conf.contribs['XCP'][
         'identification_field_type_0']
     identification_field_type_1 = conf.contribs['XCP'][
@@ -82,7 +84,7 @@ def get_daq_data_field_length():
     except KeyError:
         return 0
     data_length -= 1  # pid
-    if identification_filed_needs_alignment():
+    if identification_field_needs_alignment():
         data_length -= 1
     data_length -= get_daq_length()
 
@@ -91,13 +93,13 @@ def get_daq_data_field_length():
 
 # Idea taken from scapy/scapy/contrib/dce_rpc.py
 class XCPEndiannessField(object):
-    """Field which change the endianness of a sub-field"""
+    """Field which changes the endianness of a sub-field"""
     __slots__ = ["fld"]
 
     def __init__(self, fld):
         self.fld = fld
 
-    def set_endianess(self):
+    def set_endianness(self):
         """Add the endianness to the format"""
         byte_oder = conf.contribs['XCP']['byte_order']
         endianness = ">" if byte_oder == 1 else "<"
@@ -106,13 +108,18 @@ class XCPEndiannessField(object):
         self.fld.struct = struct.Struct(self.fld.fmt)
 
     def getfield(self, pkt, s):
-        self.set_endianess()
+        self.set_endianness()
 
         return self.fld.getfield(pkt, s)
 
     def addfield(self, pkt, s, val):
-        self.set_endianess()
+        self.set_endianness()
         return self.fld.addfield(pkt, s, val)
 
     def __getattr__(self, attr):
         return getattr(self.fld, attr)
+
+
+class StrVarLenField(StrLenField):
+    def randval(self):
+        return RandBin(RandNum(0, self.max_length() or 1200))
