@@ -143,7 +143,7 @@ sock1.close()
 sock2.close()
 
 = xcp can scanner broadcast ID-Range
-broadcast_identifier_range = (50, 54)
+broadcast_identifier_range = (50, 53)
 ecu_xcp_identifier_1 = 10
 ecu_response_identifier_1 = 11
 ecu_xcp_identifier_2 = 20
