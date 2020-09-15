@@ -293,7 +293,7 @@ class DTO(Packet):
         ConditionalField(
             StrLenField("data", "",
                         length_from=lambda _: get_daq_data_field_length()),
-            lambda _: get_daq_data_field_length())
+            lambda _: get_daq_data_field_length() > 0)
     ]
 
 
@@ -317,10 +317,7 @@ class CTOResponse(Packet):
     ]
 
     def __init__(self, *args, **kwargs):
-        self.payload_cls = GenericResponse
-        if "payload_cls" in kwargs:
-            self.payload_cls = kwargs["payload_cls"]
-            del kwargs["payload_cls"]
+        self.payload_cls = kwargs.pop("payload_cls", GenericResponse)
         Packet.__init__(self, *args, **kwargs)
 
     def guess_payload_class(self, payload):
