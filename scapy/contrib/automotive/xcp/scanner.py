@@ -51,10 +51,12 @@ class XCPOnCANScanner:
         """
 
         self.log_verbose("Scan for broadcast id: " + str(identifier))
-        cto_request = XCPOnCAN(identifier=identifier,
-                               flags=self.__flags) / CTORequest(
-            pid="TRANSPORT_LAYER_CMD") / TransportLayerCmd(
-            sub_command_code=0xFF) / TransportLayerCmdGetSlaveId()
+        cto_request = \
+            XCPOnCAN(identifier=identifier,
+                     flags=self.__flags) \
+            / CTORequest() \
+            / TransportLayerCmd() \
+            / TransportLayerCmdGetSlaveId()
 
         cto_responses, _unanswered = self.__socket.sr(cto_request, timeout=3,
                                                       verbose=True, multi=True)
@@ -75,13 +77,13 @@ class XCPOnCANScanner:
             if answer.position_1 != 0x58 or answer.position_2 != 0x43 or \
                     answer.position_3 != 0x50:
                 continue
-                # Identifier that the master must use to send pkts to the
-                # slave, identifier the slave will answer with
 
+            # Identifier that the master must use to send pkts to the slave
+            # and the slave will answer with
             slave_id = \
-                answer["TransportLayerCmdGetSlaveIdResponse"].can_identifier,
+                answer["TransportLayerCmdGetSlaveIdResponse"].can_identifier
 
-            result = XCPScannerResult(int(slave_id[0]), answer.identifier)
+            result = XCPScannerResult(slave_id, answer.identifier)
             all_slaves.append(result)
             self.log_verbose(
                 "Detected XCP slave for broadcast identifier: " + str(
@@ -100,7 +102,7 @@ class XCPOnCANScanner:
         broadcast_id_range = self.broadcast_id_range or (0, 0x7ff)
 
         self.log_verbose("Start scan with broadcast id in range: " + str(
-            self.broadcast_id_range))
+            broadcast_id_range))
 
         for identifier in range(broadcast_id_range[0],
                                 broadcast_id_range[1] + 1):
