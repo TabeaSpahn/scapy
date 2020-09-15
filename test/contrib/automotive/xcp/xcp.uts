@@ -584,8 +584,8 @@ from scapy.main import load_layer
 
 = Load module
 
-load_layer("can",  globals_dict=globals())
-load_contrib("automotive.xcp.xcp",  globals_dict=globals())
+load_layer("can", globals_dict=globals())
+load_contrib("automotive.xcp.xcp", globals_dict=globals())
 
 = Global variables
 
@@ -613,16 +613,21 @@ print("CAN should work now")
 
 = Define new_can_socket0 for root and linux
 ~ vcan_socket needs_root linux
-
 if six.PY3 and not conf.use_pypy:
-    from scapy.contrib.cansocket_native import *
-else:
-    from scapy.contrib.cansocket_python_can import *
-
-if "python_can" in CANSocket.__module__:
-    new_can_socket0 = lambda: CANSocket(bustype='socketcan', channel=iface0, bitrate=250000, timeout=0.01)
-else:
+    from scapy.contrib.cansocket_native import CANSocket
     new_can_socket0 = lambda: CANSocket(iface0)
+    print("Using Native CANSocket on " + iface0)
+else:
+    from scapy.contrib.cansocket_python_can import CANSocket
+    new_can_socket0 = lambda: CANSocket(bustype='socketcan', channel=iface0, bitrate=250000, timeout=0.01)
+    print("Using Soft CANSocket on " + iface0)
+
+= Define new_can_socket0 without root or linux
+if "new_can_socket0" not in globals():
+    from scapy.contrib.cansocket_python_can import CANSocket
+    new_can_socket0 = lambda: CANSocket(bustype='virtual', channel=iface0, timeout=0.01)
+    print("Using Soft CANSocket on virtual in-process can bus")
+
 
 = verify CAN Socket creation works
 s = new_can_socket0()
@@ -649,6 +654,8 @@ time.sleep(0.1)
 pkt = XCPOnCAN(identifier=0x700) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
 ans = sock1.sr1(pkt, timeout=3)
 thread.join()
+sock1.close()
+sock2.close()
 
 assert ans.identifier == 0x700
 cto_response = ans["CTOResponse"]
