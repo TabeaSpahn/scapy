@@ -20,7 +20,7 @@ from scapy.packet import Packet, bind_layers
 class Connect(Packet):
     commands = {0x00: "NORMAL", 0x01: "USER_DEFINED"}
     fields_desc = [
-        ByteEnumField("connection_mode", 0x1, commands),
+        ByteEnumField("connection_mode", 0, commands),
     ]
 
 
