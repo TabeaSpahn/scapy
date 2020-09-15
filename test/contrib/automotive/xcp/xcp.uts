@@ -584,8 +584,8 @@ from scapy.main import load_layer
 
 = Load module
 
-load_layer("can",  globals_dict=globals())
-load_contrib("automotive.xcp.xcp",  globals_dict=globals())
+load_layer("can", globals_dict=globals())
+load_contrib("automotive.xcp.xcp", globals_dict=globals())
 
 = Global variables
 
@@ -654,6 +654,8 @@ time.sleep(0.1)
 pkt = XCPOnCAN(identifier=0x700) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
 ans = sock1.sr1(pkt, timeout=3)
 thread.join()
+sock1.close()
+sock2.close()
 
 assert ans.identifier == 0x700
 cto_response = ans["CTOResponse"]
