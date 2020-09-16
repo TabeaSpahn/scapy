@@ -9,7 +9,8 @@
 = Imports
 
 from scapy.config import conf
-from scapy.contrib.automotive.xcp.cto_commands_master import Connect, GetCommModeInfo, GetStatus, GetSeed, Unlock, GetId, Upload, GetCalPage, SetMta, BuildChecksum, Download, ShortUpload, CopyCalPage, GetDaqProcessorInfo, GetDaqResolutionInfo, GetDaqEventInfo, GetDaqListInfo, ClearDaqList, AllocDaq, AllocOdt, AllocOdtEntry, SetDaqPtr, WriteDaq, SetDaqListMode, StartStopDaqList, GetDaqClock, StartStopSynch, ProgramStart, ProgramClear, Program
+from scapy.contrib.automotive.xcp.cto_commands_master import GetCommModeInfo, GetStatus, GetSeed, Unlock, GetId, Upload, GetCalPage, SetMta, BuildChecksum, Download, ShortUpload, CopyCalPage, GetDaqProcessorInfo, GetDaqResolutionInfo, GetDaqEventInfo, GetDaqListInfo, ClearDaqList, AllocDaq, AllocOdt, AllocOdtEntry, SetDaqPtr, WriteDaq, SetDaqListMode, StartStopDaqList, GetDaqClock, StartStopSynch, ProgramStart, ProgramClear, Program
+from scapy.contrib.automotive.xcp.cto_commands_slave import NegativeResponse
 from scapy.contrib.automotive.xcp.xcp import CTORequest, CTOResponse
 from scapy.main import load_layer
 
@@ -495,6 +496,12 @@ get_daq_clock_response = cto_response["DAQClockListPositiveResponse"]
 
 assert get_daq_clock_response.receive_timestamp == 0x0000C5AA
 
+= Test negative response
+
+cto_request = CTORequest() / GetCommModeInfo()
+cto_response = CTOResponse() / NegativeResponse()
+assert cto_response.answers(cto_request)
+
 = test_start_stop_synch
 
 conf.contribs['XCP']['byte_order'] = 0
@@ -577,7 +584,6 @@ import time
 from subprocess import call
 
 import scapy.modules.six as six
-from scapy.consts import LINUX
 from scapy.contrib.automotive.xcp.cto_commands_master import Connect
 from scapy.contrib.automotive.xcp.xcp import CTORequest, XCPOnCAN, CTOResponse, ConnectPositiveResponse
 from scapy.main import load_layer
