@@ -103,6 +103,12 @@ class XCPOnUDP(UDP):
         ShortField("ctr", 0),  # counter
     ]
 
+    def post_build(self, pkt, pay):
+        if self.length is None:
+            tmp_len = len(pay)
+            pkt = pkt[:8] + struct.pack("!H", tmp_len) + pkt[10:]
+        return super(XCPOnUDP, self).post_build(pkt, pay)
+
 
 class XCPOnTCP(TCP):
     name = "Universal calibration and measurement protocol on Ethernet"
@@ -118,6 +124,14 @@ class XCPOnTCP(TCP):
         if isinstance(other.payload, CTORequest) and isinstance(self.payload,
                                                                 CTOResponse):
             return self.payload.answers(other.payload)
+
+    def post_build(self, pkt, pay):
+        if self.length is None:
+            len_offset = 20 + len(self.options)
+            tmp_len = len(pay)
+            tmp_len = struct.pack("!H", tmp_len)
+            pkt = pkt[:len_offset] + tmp_len + pkt[len_offset + 2:]
+        return super(XCPOnTCP, self).post_build(pkt, pay)
 
 
 class XCPOnCANTail(Packet):
