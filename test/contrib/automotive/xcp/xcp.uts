@@ -21,7 +21,7 @@ load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = test_get_com_mode_info
 
-cto_request = CTORequest(pid="GET_COMM_MODE_INFO") / GetCommModeInfo()
+cto_request = CTORequest() / GetCommModeInfo()
 assert cto_request.pid == 0xfb
 assert bytes(cto_request) == b'\xfb'
 
@@ -38,7 +38,7 @@ assert get_comm_mode_info_response.xcp_driver_version_number == 0x64
 
 = test_get_status
 
-cto_request = CTORequest(pid="GET_STATUS") / GetStatus()
+cto_request = CTORequest() / GetStatus()
 assert cto_request.pid == 0xfd
 assert bytes(cto_request) == b'\xfd'
 
@@ -62,7 +62,7 @@ assert get_comm_mode_info_response.session_configuration_id == 0x0000
 = test_get_seed
 
 conf.contribs['XCP']['MAX_CTO'] = 8
-cto_request = CTORequest(pid="GET_SEED") / GetSeed(b'\x00\x01')
+cto_request = CTORequest() / GetSeed(b'\x00\x01')
 assert cto_request.pid == 0xf8
 assert bytes(cto_request) == b'\xf8\x00\x01'
 
@@ -77,7 +77,7 @@ assert get_seed_response.seed == b'\x00\x01\x02\x03\x04\x05'
 = test_unlock
 
 conf.contribs['XCP']['MAX_CTO'] = 8
-cto_request = CTORequest(pid="UNLOCK") / Unlock(b'\x06\x69\xAB\xA6\x00\x00\x00')
+cto_request = CTORequest() / Unlock(b'\x06\x69\xAB\xA6\x00\x00\x00')
 assert cto_request.pid == 0xf7
 assert cto_request['Unlock'].len == 0x06
 assert cto_request['Unlock'].seed == b'\x69\xAB\xA6\x00\x00\x00'
@@ -101,7 +101,7 @@ assert "x7" not in unlock_response.current_resource_protection_status
 = test_get_id
 
 conf.contribs['XCP']['byte_order'] = 0
-cto_request = CTORequest(pid="GET_ID") / GetId(b'\x01')
+cto_request = CTORequest() / GetId(b'\x01')
 assert cto_request.pid == 0xfa
 assert bytes(cto_request) == b'\xfa\x01'
 assert cto_request['GetId'].identification_type == 0x01
@@ -120,7 +120,7 @@ assert get_id_response.length == 6
 conf.contribs['XCP']['MAX_CTO'] = 8
 conf.contribs['XCP']['Address_Granularity_Byte'] = 1
 
-cto_request = CTORequest(pid="UPLOAD") / Upload(b'\x06')
+cto_request = CTORequest() / Upload(b'\x06')
 assert cto_request.pid == 0xf5
 assert bytes(cto_request) == b'\xf5\x06'
 assert cto_request['Upload'].nr_of_data_elements == 0x06
@@ -134,7 +134,7 @@ assert upload_response.element == b'\x58\x43\x50\x53\x49\x4D'
 
 = test_cal_page
 
-cto_request = CTORequest(pid="GET_CAL_PAGE") / GetCalPage(b'\x01\x00')
+cto_request = CTORequest() / GetCalPage(b'\x01\x00')
 assert cto_request.pid == 0xea
 assert bytes(cto_request) == b'\xea\x01\x00'
 
@@ -149,7 +149,7 @@ assert get_cal_page_response.logical_data_page_number == 0x01
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="SET_MTA") / SetMta(b'\xff\xff\x00\x3c\x00\x00\x00')
+cto_request = CTORequest() / SetMta(b'\xff\xff\x00\x3c\x00\x00\x00')
 assert cto_request.pid == 0xf6
 assert bytes(cto_request) == b'\xf6\xff\xff\x00\x3c\x00\x00\x00'
 assert cto_request['SetMta'].address_extension == 0x00
@@ -163,7 +163,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="BUILD_CHECKSUM") / BuildChecksum(b'\xff\xff\xff\xad\x0d\x00\x00')
+cto_request = CTORequest() / BuildChecksum(b'\xff\xff\xff\xad\x0d\x00\x00')
 assert cto_request.pid == 0xf3
 assert bytes(cto_request) == b'\xf3\xff\xff\xff\xad\x0d\x00\x00'
 assert hex(cto_request['BuildChecksum'].block_size) == '0xdad'
@@ -182,7 +182,7 @@ conf.contribs['XCP']['byte_order'] = 0
 conf.contribs['XCP']['MAX_CTO'] = 8
 conf.contribs['XCP']['Address_Granularity_Byte'] = 1
 
-cto_request = CTORequest(pid="DOWNLOAD") / Download(b'\x04\x00\x00\x80\x3f')
+cto_request = CTORequest() / Download(b'\x04\x00\x00\x80\x3f')
 assert cto_request.pid == 0xf0
 assert bytes(cto_request) == b'\xf0\x04\x00\x00\x80\x3f'
 assert cto_request['Download'].nr_of_data_elements == 0x04
@@ -198,7 +198,7 @@ conf.contribs['XCP']['byte_order'] = 0
 conf.contribs['XCP']['MAX_CTO'] = 8
 conf.contribs['XCP']['Address_Granularity_Byte'] = 1
 
-cto_request = CTORequest(pid="SHORT_UPLOAD") / ShortUpload(b'\04\xff\x00\x60\x00\x00\x00')
+cto_request = CTORequest() / ShortUpload(b'\04\xff\x00\x60\x00\x00\x00')
 assert cto_request.pid == 0xf4
 assert bytes(cto_request) == b'\xf4\x04\xff\x00\x60\x00\x00\x00'
 assert cto_request['ShortUpload'].nr_of_data_elements == 0x04
@@ -214,7 +214,7 @@ assert upload_response.element == b'\x00\x00\x80\x3F'
 
 = test_copy_cal_page
 
-cto_request = CTORequest(pid="COPY_CAL_PAGE") / CopyCalPage(b'\00\x01\x02\x03')
+cto_request = CTORequest() / CopyCalPage(b'\00\x01\x02\x03')
 assert cto_request.pid == 0xe4
 assert bytes(cto_request) == b'\xe4\00\x01\x02\x03'
 assert cto_request['CopyCalPage'].segment_num_src == 0x00
@@ -230,7 +230,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="GET_DAQ_PROCESSOR_INFO") / GetDaqProcessorInfo()
+cto_request = CTORequest() / GetDaqProcessorInfo()
 assert cto_request.pid == 0xda
 assert bytes(cto_request) == b'\xda'
 cto_response = CTOResponse(b'\xff\x11\x00\x00\x01\x00\x00\x40')
@@ -268,7 +268,7 @@ assert "address_extension_daq" not in processor_info_response.daq_key_byte
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="GET_DAQ_RESOLUTION_INFO") / GetDaqResolutionInfo()
+cto_request = CTORequest() / GetDaqResolutionInfo()
 assert cto_request.pid == 0xd9
 assert bytes(cto_request) == b'\xd9'
 
@@ -297,7 +297,7 @@ assert resolution_info_response.timestamp_ticks == 0x000A
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="GET_DAQ_EVENT_INFO") / GetDaqEventInfo(b'\xff\x00\x00')
+cto_request = CTORequest() / GetDaqEventInfo(b'\xff\x00\x00')
 assert cto_request.pid == 0xd7
 assert bytes(cto_request) == b'\xd7\xff\x00\x00'
 assert cto_request['GetDaqEventInfo'].event_channel_num == 0x0000
@@ -327,7 +327,7 @@ assert event_info_response.event_channel_priority == 0x00
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="GET_DAQ_LIST_INFO") / GetDaqListInfo(b'\xff\x00\x00')
+cto_request = CTORequest() / GetDaqListInfo(b'\xff\x00\x00')
 assert cto_request.pid == 0xd8
 assert bytes(cto_request) == b'\xd8\xff\x00\x00'
 assert cto_request['GetDaqListInfo'].daq_list_num == 0x0000
@@ -355,7 +355,7 @@ assert list_info_response.fixed_event == 0x00
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="CLEAR_DAQ_LIST") / ClearDaqList(b'\xff\x00\x00')
+cto_request = CTORequest() / ClearDaqList(b'\xff\x00\x00')
 assert cto_request.pid == 0xe3
 assert bytes(cto_request) == b'\xe3\xff\x00\x00'
 assert cto_request['ClearDaqList'].daq_list_num == 0x0000
@@ -368,7 +368,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="ALLOC_DAQ") / AllocDaq(b'\xff\x01\x00')
+cto_request = CTORequest() / AllocDaq(b'\xff\x01\x00')
 assert cto_request.pid == 0xd5
 assert bytes(cto_request) == b'\xd5\xff\x01\x00'
 assert cto_request['AllocDaq'].daq_count == 0x0001
@@ -381,7 +381,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="ALLOC_ODT") / AllocOdt(b'\xff\x00\x00\x01')
+cto_request = CTORequest() / AllocOdt(b'\xff\x00\x00\x01')
 assert cto_request.pid == 0xd4
 assert bytes(cto_request) == b'\xd4\xff\x00\x00\x01'
 assert cto_request['AllocOdt'].daq_list_num == 0x0000
@@ -395,7 +395,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="ALLOC_ODT_ENTRY") / AllocOdtEntry(b'\xff\x00\x00\x00\x02')
+cto_request = CTORequest() / AllocOdtEntry(b'\xff\x00\x00\x00\x02')
 assert cto_request.pid == 0xd3
 assert bytes(cto_request) == b'\xd3\xff\x00\x00\x00\x02'
 assert cto_request['AllocOdtEntry'].daq_list_num == 0x0000
@@ -410,7 +410,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="SET_DAQ_PTR") / SetDaqPtr(b'\xff\x00\x00\x00\x00')
+cto_request = CTORequest() / SetDaqPtr(b'\xff\x00\x00\x00\x00')
 assert cto_request.pid == 0xe2
 assert bytes(cto_request) == b'\xe2\xff\x00\x00\x00\x00'
 assert cto_request['SetDaqPtr'].daq_list_num == 0x0000
@@ -425,7 +425,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="WRITE_DAQ") / WriteDaq(b'\xFF\x04\x00\x08\x55\x0C\x00')
+cto_request = CTORequest() / WriteDaq(b'\xFF\x04\x00\x08\x55\x0C\x00')
 assert cto_request.pid == 0xe1
 assert bytes(cto_request) == b'\xe1\xFF\x04\x00\x08\x55\x0C\x00'
 assert cto_request['WriteDaq'].bit_offset == 0xff
@@ -440,7 +440,7 @@ assert cto_response.answers(cto_request)
 = test_set_daq_list_mode(self):
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="SET_DAQ_LIST_MODE") / SetDaqListMode(b'\x10\x00\x00\x00\x00\x01\x00')
+cto_request = CTORequest() / SetDaqListMode(b'\x10\x00\x00\x00\x00\x01\x00')
 assert cto_request.pid == 0xe0
 assert bytes(cto_request) == b'\xe0\x10\x00\x00\x00\x00\x01\x00'
 set_daq_list_mode_request = cto_request['SetDaqListMode']
@@ -467,7 +467,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="START_STOP_DAQ_LIST") / StartStopDaqList(b'\x02\x00\x00')
+cto_request = CTORequest() / StartStopDaqList(b'\x02\x00\x00')
 assert cto_request.pid == 0xde
 assert bytes(cto_request) == b'\xde\x02\x00\x00'
 assert cto_request['StartStopDaqList'].mode == 0x02
@@ -483,7 +483,7 @@ assert cto_response['StartStopDAQListPositiveResponse'].first_pid == 0xbb
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="GET_DAQ_CLOCK") / GetDaqClock()
+cto_request = CTORequest() / GetDaqClock()
 assert cto_request.pid == 0xdc
 assert bytes(cto_request) == b'\xdc'
 
@@ -499,7 +499,7 @@ assert get_daq_clock_response.receive_timestamp == 0x0000C5AA
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="START_STOP_SYNCH") / StartStopSynch(b'\x01')
+cto_request = CTORequest() / StartStopSynch(b'\x01')
 assert cto_request.pid == 0xdd
 assert bytes(cto_request) == b'\xdd\x01'
 assert cto_request['StartStopSynch'].mode == 0x01
@@ -512,7 +512,7 @@ assert cto_response.answers(cto_request)
 
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="PROGRAM_START") / ProgramStart()
+cto_request = CTORequest() / ProgramStart()
 assert cto_request.pid == 0xd2
 assert bytes(cto_request) == b'\xd2'
 
@@ -540,7 +540,7 @@ assert program_start_response.queue_size_pgm == 0xdd
 = test_program_clear(self):
 conf.contribs['XCP']['byte_order'] = 0
 
-cto_request = CTORequest(pid="PROGRAM_CLEAR") / ProgramClear(b'\x00\xff\xff\x00\x01\x00\x00')
+cto_request = CTORequest() / ProgramClear(b'\x00\xff\xff\x00\x01\x00\x00')
 assert cto_request.pid == 0xd1
 assert bytes(cto_request) == b'\xd1\x00\xff\xff\x00\x01\x00\x00'
 
@@ -557,7 +557,7 @@ conf.contribs['XCP']['byte_order'] = 0
 conf.contribs['XCP']['MAX_CTO'] = 8
 conf.contribs['XCP']['Address_Granularity_Byte'] = 1
 
-cto_request = CTORequest(pid="PROGRAM") / Program(b'\x06\x00\x01\x02\x03\x04\x05')
+cto_request = CTORequest() / Program(b'\x06\x00\x01\x02\x03\x04\x05')
 assert cto_request.pid == 0xd0
 assert bytes(cto_request) == b'\xd0\x06\x00\x01\x02\x03\x04\x05'
 
@@ -651,7 +651,7 @@ def ecu():
 thread = threading.Thread(target=ecu)
 thread.start()
 time.sleep(0.1)
-pkt = XCPOnCAN(identifier=0x700) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
+pkt = XCPOnCAN(identifier=0x700) / CTORequest() / Connect()
 ans = sock1.sr1(pkt, timeout=3)
 thread.join()
 sock1.close()
@@ -673,12 +673,12 @@ assert connect_response.xcp_protocol_layer_version_number_msb == 0x10
 assert connect_response.xcp_transport_layer_version_number_msb == 0x10
 
 
-cto_request = XCPOnCAN(identifier=0x700) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
+cto_request = XCPOnCAN(identifier=0x700) / CTORequest() / Connect()
 
 assert cto_request.identifier == 0x700
 assert cto_request.pid == 0xFF
 assert cto_request.connection_mode == 0
-assert bytes(cto_request) == b'\x00\x00\x07\x00\x08\x00\x00\x00\xff\x00'
+assert bytes(cto_request) == b'\x00\x00\x07\x00\x02\x00\x00\x00\xff\x00'
 
 xcp_on_can = XCPOnCAN(b'\x00\x00\x05\x00\x08\x00\x00\x00\xff\x15\xC0\x08\x08\x00\x10\x10')
 assert xcp_on_can.identifier == 0x500
@@ -735,7 +735,7 @@ load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = CONNECT
 
-cto_request = XCPOnUDP(length=2, ctr=0, sport=1, dport=1) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
+cto_request = XCPOnUDP(length=2, ctr=0, sport=1, dport=1) / CTORequest() / Connect()
 
 assert cto_request.length == 2
 assert cto_request.ctr == 0
@@ -774,7 +774,7 @@ from scapy.contrib.automotive.xcp.xcp import XCPOnUDP
 = CONNECT
 
 prt1, prt2 = 12345, 54321
-xcp_on_udp_request = XCPOnUDP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest(pid="CONNECT") / Connect(connection_mode="NORMAL")
+xcp_on_udp_request = XCPOnUDP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest() / Connect()
 
 assert xcp_on_udp_request.length == 2
 assert xcp_on_udp_request.ctr == 0
@@ -811,8 +811,7 @@ from scapy.contrib.automotive.xcp.xcp import XCPOnTCP
 
 prt1, prt2 = 12345, 54321
 
-xcp_on_tcp_request = XCPOnTCP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest(pid="CONNECT") / Connect(
-    connection_mode="NORMAL")
+xcp_on_tcp_request = XCPOnTCP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest() / Connect()
 assert xcp_on_tcp_request.length == 2
 assert xcp_on_tcp_request.ctr == 0
 assert xcp_on_tcp_request.pid == 0xFF

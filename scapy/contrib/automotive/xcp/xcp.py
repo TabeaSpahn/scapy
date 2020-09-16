@@ -81,9 +81,16 @@ class XCPOnCAN(CAN):
                                    "remote_transmission_request",
                                    "extended"]),
         XBitField("identifier", 0, 29),
-        ByteField("length", 8),
+        ByteField("length", None),
         ThreeBytesField("reserved", 0),
     ]
+
+    def post_build(self, pkt, pay):
+        if self.length is None:
+            tmp_len = len(pay)
+            pkt = pkt[:4] + struct.pack("B", tmp_len) + pkt[5:]
+
+        return super(XCPOnCAN, self).post_build(pkt, pay)
 
     def extract_padding(self, p):
         return p, None
