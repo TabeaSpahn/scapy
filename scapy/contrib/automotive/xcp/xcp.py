@@ -298,7 +298,9 @@ bind_layers(CTORequest, ProgramMax, pid=0xC9)
 bind_layers(CTORequest, ProgramVerify, pid=0xC8)
 
 
-# ##### DTOs(STIMs) #####
+# ##### DTOs #####
+# Master -> Slave:  STIM (Stimulation)
+# Slave  -> Master: DAQ (Data AcQuisition)
 class DTO(Packet):
     name = "Data transfer object"
     fields_desc = [
@@ -318,13 +320,11 @@ class DTO(Packet):
     ]
 
 
-for pid in range(0, 192):
+for pid in range(0, 0xBF + 1):
     bind_layers(CTORequest, DTO, pid=pid)
 
 
 class CTOResponse(Packet):
-    __slots__ = Packet.__slots__ + ["payload_cls"]
-
     packet_codes = {
         0xFF: "RES",
         0xFE: "ERR",
@@ -337,29 +337,13 @@ class CTOResponse(Packet):
         ByteEnumField("packet_code", 0xFF, packet_codes),
     ]
 
-    def __init__(self, *args, **kwargs):
-        self.payload_cls = kwargs.pop("payload_cls", GenericResponse)
-        Packet.__init__(self, *args, **kwargs)
-
-    def guess_payload_class(self, payload):
-        if self.packet_code < 252:
-            return DTO
-        return self.payload_cls
-
-    def get_cto_cls(self, request):
+    @staticmethod
+    def get_positive_response_cls(request):
+        # The pid of the request this packet is the response for
         request_pid = request.pid
-        try:
-            if self.packet_code == "ERR" or self.packet_code == 254:
-                return NegativeResponse
-            if self.packet_code == "EV" or self.packet_code == 253:
-                return EvPacket
-            if self.packet_code == "SERV" or self.packet_code == 252:
-                return ServPacket
-            if self.packet_code != "RES" and self.packet_code != 255:
-                return DTO
-        except KeyError:
-            return GenericResponse
-        # positive response
+        # First check the special cases with sub commands
+        # They can't be fit in a simple dictionary,
+        # so deal with them separately
         if request_pid == 0xF2:
             if request.sub_command_code == 255:
                 return TransportLayerCmdGetSlaveIdResponse
@@ -372,56 +356,56 @@ class CTOResponse(Packet):
                 return SegmentInfoMode1PositiveResponse
             if request.mode == "get_address_mapping_info":
                 return SegmentInfoMode2PositiveResponse
-        try:
-            return {0xFF: ConnectPositiveResponse,
-                    0xFD: StatusPositiveResponse,
-                    0xFB: CommonModeInfoPositiveResponse,
-                    0xFA: IdPositiveResponse,
-                    0xF8: SeedPositiveResponse,
-                    0xF7: UnlockPositiveResponse,
-                    0xF5: UploadPositiveResponse,
-                    0xF4: ShortUploadPositiveResponse,
-                    0xF3: ChecksumPositiveResponse,
-                    0xEA: CalPagePositiveResponse,
-                    0xE9: PagProcessorInfoPositiveResponse,
-                    0xE7: PageInfoPositiveResponse,
-                    0xE5: SegmentModePositiveResponse,
-                    0xDF: DAQListModePositiveResponse,
-                    0xDE: StartStopDAQListPositiveResponse,
-                    0xDC: DAQClockListPositiveResponse,
-                    0xDB: ReadDAQPositiveResponse,
-                    0xDA: DAQProcessorInfoPositiveResponse,
-                    0xD9: DAQResolutionInfoPositiveResponse,
-                    0xD8: DAQListInfoPositiveResponse,
-                    0xD7: DAQEventInfoPositiveResponse,
-                    0xD2: ProgramStartPositiveResponse,
-                    0xCE: PgmProcessorPositiveResponse,
-                    0xCD: SectorInfoPositiveResponse,
-                    }[request_pid]
-        except KeyError:
-            return GenericResponse
+        return {0xFF: ConnectPositiveResponse,
+                0xFD: StatusPositiveResponse,
+                0xFB: CommonModeInfoPositiveResponse,
+                0xFA: IdPositiveResponse,
+                0xF8: SeedPositiveResponse,
+                0xF7: UnlockPositiveResponse,
+                0xF5: UploadPositiveResponse,
+                0xF4: ShortUploadPositiveResponse,
+                0xF3: ChecksumPositiveResponse,
+                0xEA: CalPagePositiveResponse,
+                0xE9: PagProcessorInfoPositiveResponse,
+                0xE7: PageInfoPositiveResponse,
+                0xE5: SegmentModePositiveResponse,
+                0xDF: DAQListModePositiveResponse,
+                0xDE: StartStopDAQListPositiveResponse,
+                0xDC: DAQClockListPositiveResponse,
+                0xDB: ReadDAQPositiveResponse,
+                0xDA: DAQProcessorInfoPositiveResponse,
+                0xD9: DAQResolutionInfoPositiveResponse,
+                0xD8: DAQListInfoPositiveResponse,
+                0xD7: DAQEventInfoPositiveResponse,
+                0xD2: ProgramStartPositiveResponse,
+                0xCE: PgmProcessorPositiveResponse,
+                0xCD: SectorInfoPositiveResponse,
+                }.get(request_pid, GenericResponse)
 
     def answers(self, request):
         """In XCP, the payload of a response packet is dependent on the pid
-        field of the corresponding request. """
-        if not hasattr(request, "pid") or not hasattr(self, "packet_code"):
-            return 0
-        payload_cls = self.get_cto_cls(request)
+        field of the corresponding request.
+        This method changes the class of the payload to the class
+        which is expected for the given request."""
+        if not isinstance(request, CTORequest) or \
+                not isinstance(self, CTOResponse):
+            return False
 
-        if self.payload_cls != payload_cls and \
-                self.payload_cls == GenericResponse:
-            data = bytes(self.payload)
-            prev_payload_cls = self.payload_cls
-            try:
-                self.remove_payload()
-                self.add_payload(payload_cls(data))
-                self.payload_cls = payload_cls
-            except struct.error:
-                self.add_payload(prev_payload_cls(data))
-                self.payload_cls = prev_payload_cls
-                return 0
-        return 1
+        if isinstance(self.payload, NegativeResponse):
+            return True
 
+        payload_cls = self.get_positive_response_cls(request)
+
+        data = bytes(self.payload)
+        self.remove_payload()
+        self.add_payload(payload_cls(data))
+        return True
+
+
+for pid in range(0, 0xFB + 1):
+    bind_layers(CTOResponse, DTO, pid=pid)
+
+bind_layers(CTOResponse, NegativeResponse, pid=0xFE)
 
 # Asynchronous Event/request messages from the slave
 bind_layers(CTOResponse, EvPacket, packet_code=0xFD)
