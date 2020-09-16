@@ -58,8 +58,7 @@ class GenericResponse(Packet):
 class ConnectPositiveResponse(Packet):
     fields_desc = [
         FlagsField("resource", 0, 8,
-                   ["cal_pag", "x1", "daq", "stim", "pgm", "x5", "x6", "x7",
-                    "cal_pag"]),
+                   ["cal_pag", "x1", "daq", "stim", "pgm", "x5", "x6", "x7"]),
         FlagsField("comm_mode_basic", 0, 8,
                    ["byte_order", "address_granularity_0",
                     "address_granularity_1", "x3", "x4", "x5",
