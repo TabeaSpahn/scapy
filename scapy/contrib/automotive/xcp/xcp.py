@@ -391,7 +391,9 @@ class CTOResponse(Packet):
                 not isinstance(self, CTOResponse):
             return False
 
-        if isinstance(self.payload, NegativeResponse):
+        if isinstance(self.payload, NegativeResponse) or \
+                isinstance(self.payload, EvPacket) or \
+                isinstance(self.payload, ServPacket):
             return True
 
         payload_cls = self.get_positive_response_cls(request)
