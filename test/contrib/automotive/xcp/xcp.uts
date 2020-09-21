@@ -333,7 +333,7 @@ assert cto_request.pid == 0xd8
 assert bytes(cto_request) == b'\xd8\xff\x00\x00'
 assert cto_request['GetDaqListInfo'].daq_list_num == 0x0000
 
-cto_response = CTOResponse(b'\xFF\x04\x03\x0a')
+cto_response = CTOResponse(b'\xFF\x04\x03\x0a\x00\x00')
 assert cto_response.packet_code == 0xFF
 assert cto_response.answers(cto_request)
 
@@ -640,7 +640,7 @@ s = new_can_socket0()
 s.close()
 
 
-= CONNECT
+= Connect
 sock1 = new_can_socket0()
 sock2 = new_can_socket0()
 
@@ -650,8 +650,7 @@ sock2.basecls = XCPOnCAN
 def ecu():
     pkts = sock2.sniff(count=1, timeout=5)
     if len(pkts) == 1:
-        response = XCPOnCAN(identifier=0x700) / CTOResponse(packet_code="RES") / ConnectPositiveResponse(
-            b'\x15\xC0\x08\x08\x00\x10\x10')
+        response = XCPOnCAN(identifier=0x700) / CTOResponse() / ConnectPositiveResponse(b'\x15\xC0\x08\x08\x00\x10\x10')
         sock2.send(response)
 
 thread = threading.Thread(target=ecu)
@@ -716,6 +715,15 @@ assert p.max_dto == 0xff
 p = ConnectPositiveResponse(b"\x00\x00\x01\xFF\x00\x05\x05")
 assert p.max_dto_le == 0xff
 assert p.max_dto is None
+
+= Wrong answer
+
+request = XCPOnCAN(identifier=0x700) / CTORequest() / Connect()
+
+# This response has not enough bytes for a ConnectPositiveResponse
+response = XCPOnCAN(identifier=0x90) / CTOResponse() / Raw(b'\x01\x02\x03\x04')
+
+assert not response.answers(request)
 
 
 + Cleanup VCAN

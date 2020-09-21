@@ -398,9 +398,26 @@ class CTOResponse(Packet):
 
         payload_cls = self.get_positive_response_cls(request)
 
-        data = bytes(self.payload)
-        self.remove_payload()
-        self.add_payload(payload_cls(data))
+        minimum_expected_byte_count = len(payload_cls())
+        given_byte_count = len(self.payload)
+
+        if given_byte_count < minimum_expected_byte_count:
+            return False
+
+        # Even if there are enough bytes, we can't be sure that they align
+        # correctly to the fields. Then a struct.error exception is thrown.
+        # For example
+        # Fields: byte, byte, short
+        # Packet: 01 02 03
+        # This would fail because there are enough bytes that scapy starts
+        # to parse the short field, but there are actually not enough bytes
+        # to fill it.
+        try:
+            data = bytes(self.payload)
+            self.remove_payload()
+            self.add_payload(payload_cls(data))
+        except struct.error:
+            return False
         return True
 
 
@@ -433,7 +450,7 @@ positive_response_classes = [ConnectPositiveResponse,
                              SectorInfoPositiveResponse]
 
 for cls in positive_response_classes:
-    bind_top_down(CTOResponse, cls, packet_code="RES")
+    bind_top_down(CTOResponse, cls, packet_code=0xFF)
 
 bind_layers(CTOResponse, NegativeResponse, pid=0xFE)
 
