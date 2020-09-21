@@ -176,7 +176,7 @@ class ShortUploadPositiveResponse(Packet):
 
 
 class ChecksumPositiveResponse(Packet):
-    checksum_type = {
+    checksum_type_dict = {
         0x01: "XCP_ADD_11",
         0x02: "XCP_ADD_12",
         0x03: "XCP_ADD_14",
@@ -189,9 +189,9 @@ class ChecksumPositiveResponse(Packet):
         0xFF: "XCP_USER_DEFINED"
     }
     fields_desc = [
-        ByteEnumField("checksum_type", 0, checksum_type),
+        ByteEnumField("checksum_type", 0, checksum_type_dict),
         # specification says: position 2,3 type byte (not WORD) The example(
-        # Part 5 Example Communication Sequences ) shows 2 bytes for
+        # Part 5 Example Communication Sequences) shows 2 bytes for
         # "reserved"
         # http://read.pudn.com/downloads192/doc/comm/903802/XCP%20-Part%205-%20Example%20Communication%20Sequences%20-1.0.pdf # noqa: E501
         # --> 2 bytes
