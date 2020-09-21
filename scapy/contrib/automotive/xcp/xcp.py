@@ -47,7 +47,7 @@ from scapy.fields import ByteEnumField, ShortField, XBitField, \
     XByteField, StrLenField
 from scapy.layers.can import CAN
 from scapy.layers.inet import UDP, TCP
-from scapy.packet import Packet, bind_layers, bind_bottom_up
+from scapy.packet import Packet, bind_layers, bind_bottom_up, bind_top_down
 
 if "XCP" not in conf.contribs:
     conf.contribs["XCP"] = {}
@@ -334,7 +334,7 @@ class CTOResponse(Packet):
     name = "Command Transfer Object Response"
 
     fields_desc = [
-        ByteEnumField("packet_code", 0xFF, packet_codes),
+        ByteEnumField("packet_code", 0, packet_codes),
     ]
 
     @staticmethod
@@ -406,6 +406,34 @@ class CTOResponse(Packet):
 
 for pid in range(0, 0xFB + 1):
     bind_layers(CTOResponse, DTO, pid=pid)
+
+positive_response_classes = [ConnectPositiveResponse,
+                             StatusPositiveResponse,
+                             CommonModeInfoPositiveResponse,
+                             IdPositiveResponse,
+                             SeedPositiveResponse,
+                             UnlockPositiveResponse,
+                             UploadPositiveResponse,
+                             ShortUploadPositiveResponse,
+                             ChecksumPositiveResponse,
+                             CalPagePositiveResponse,
+                             PagProcessorInfoPositiveResponse,
+                             PageInfoPositiveResponse,
+                             SegmentModePositiveResponse,
+                             DAQListModePositiveResponse,
+                             StartStopDAQListPositiveResponse,
+                             DAQClockListPositiveResponse,
+                             ReadDAQPositiveResponse,
+                             DAQProcessorInfoPositiveResponse,
+                             DAQResolutionInfoPositiveResponse,
+                             DAQListInfoPositiveResponse,
+                             DAQEventInfoPositiveResponse,
+                             ProgramStartPositiveResponse,
+                             PgmProcessorPositiveResponse,
+                             SectorInfoPositiveResponse]
+
+for cls in positive_response_classes:
+    bind_top_down(CTOResponse, cls, packet_code="RES")
 
 bind_layers(CTOResponse, NegativeResponse, pid=0xFE)
 
