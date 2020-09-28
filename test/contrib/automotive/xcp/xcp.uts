@@ -780,12 +780,7 @@ assert conf.contribs['XCP']['MAX_CTO'] == 8
 assert conf.contribs['XCP']['MAX_DTO'] == 8
 assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
 
-
-+ Tests XCPonUDP
-= Imports
-from scapy.contrib.automotive.xcp.xcp import XCPOnUDP
-
-= CONNECT
+= CONNECT 2
 
 prt1, prt2 = 12345, 54321
 xcp_on_udp_request = XCPOnUDP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest() / Connect()
@@ -816,6 +811,11 @@ assert conf.contribs['XCP']['MAX_CTO'] == 8
 assert conf.contribs['XCP']['MAX_DTO'] == 8
 assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
 
+= XCPOnUDP post build length
+
+xcp_on_udp_request = XCPOnUDP(sport=1, dport=2, ctr=0) / CTORequest() / Connect()
+xcp_on_udp_request.do_build()
+assert bytes(xcp_on_udp_request)[8:10] == b'\x00\x02'
 
 + Tests XCPonTCP
 = Imports
@@ -851,3 +851,12 @@ assert conf.contribs['XCP']['byte_order'] == 0
 assert conf.contribs['XCP']['MAX_CTO'] == 8
 assert conf.contribs['XCP']['MAX_DTO'] == 8
 assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
+
+
+= XCPOnTCP post build length
+
+xcp_on_tcp_request = XCPOnTCP(sport=prt1, dport=prt2, ctr=0) / CTORequest() / Connect()
+
+xcp_on_tcp_request = XCPOnTCP(sport=1, dport=2, ctr=0) / CTORequest() / Connect()
+xcp_on_tcp_request.do_build()
+assert bytes(xcp_on_tcp_request)[20:22] == b'\x00\x02'

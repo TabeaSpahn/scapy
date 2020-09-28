@@ -89,7 +89,6 @@ class XCPOnCAN(CAN):
         if self.length is None:
             tmp_len = len(pay)
             pkt = pkt[:4] + struct.pack("B", tmp_len) + pkt[5:]
-
         return super(XCPOnCAN, self).post_build(pkt, pay)
 
     def extract_padding(self, p):

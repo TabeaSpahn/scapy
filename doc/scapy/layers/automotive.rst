@@ -431,7 +431,7 @@ CANSocket to CCP and we need to use sr1:
 Sending a CRO message::
 
     cro = CCP(identifier=0x700)/CRO(ctr=0x53)/PROGRAM_6(data=b"\x10\x11\x12\x10\x11\x12")
-    sock = CANSocket(iface=can.interface.Bus(bustype='socketcan', channel='vcan0', bitrate=250000), basecls=CCP)
+    sock = CANSocket(iface=can.interface.Bus(bustype='socketcan', channel='vcan0'), basecls=CCP)
     dto = sock.sr1(cro)
     dto.show()
     ###[ CAN Calibration Protocol ]###
