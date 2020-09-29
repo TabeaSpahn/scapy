@@ -26,20 +26,24 @@ class XCPOnCANScanner:
     """
 
     def __init__(self, can_socket, use_extended_can_id=False,
-                 broadcast_id=None, broadcast_id_range=None, verbose=False):
-        # type: (CANSocket, Optional[bool], Optional[int], Optional[Tuple[int, int]], Optional[bool]) -> None # noqa: E501
+                 broadcast_id=None, broadcast_id_range=None,
+                 sniff_time=0.1, verbose=False):
+        # type: (CANSocket, Optional[bool], Optional[int], Optional[Tuple[int, int]], Optional[float], Optional[bool]) -> None # noqa: E501
 
         """
         Constructor
         :param can_socket: Can Socket with XCPonCAN as basecls for scan
         :param use_extended_can_id: True if extended IDs are used
         :param broadcast_id: XCP broadcast Id in network (if known)
+        :param sniff_time: time the scan waits for a response
+                           after sending a request
         """
         self.__socket = can_socket
         self.broadcast_id = broadcast_id
         self.broadcast_id_range = broadcast_id_range
         self.__use_extended_can_id = use_extended_can_id
         self.__flags = 0
+        self.__sniff_time = sniff_time
         self.__verbose = verbose
         if use_extended_can_id:
             self.__flags = "extended"
@@ -58,8 +62,9 @@ class XCPOnCANScanner:
             / TransportLayerCmd() \
             / TransportLayerCmdGetSlaveId()
 
-        cto_responses, _unanswered = self.__socket.sr(cto_request, timeout=3,
-                                                      verbose=True, multi=True)
+        cto_responses, _unanswered = \
+            self.__socket.sr(cto_request, timeout=self.__sniff_time,
+                             verbose=True, multi=True)
         all_slaves = []
         if len(cto_responses) == 0:
             self.log_verbose(
