@@ -733,7 +733,7 @@ assert not response.answers(request)
 if 0 != call(["sudo", "ip", "link", "delete", iface0]):
     raise Exception("%s could not be deleted" % iface0)
 
-+ Test for XCPonUDP
++ Tests for XCPonUDP
 = Imports
 
 from scapy.config import conf
@@ -749,15 +749,15 @@ load_contrib("automotive.xcp.xcp",  globals_dict=globals())
 
 = CONNECT
 
-cto_request = XCPOnUDP(length=2, ctr=0, sport=1, dport=1) / CTORequest() / Connect()
+cto_request = XCPOnUDP(ctr=0, sport=1, dport=1) / CTORequest() / Connect()
 
-assert cto_request.length == 2
+assert cto_request.length is None
 assert cto_request.ctr == 0
 
 assert cto_request.pid == 0xFF
 assert cto_request.connection_mode == 0
 assert bytes(cto_request).endswith(b'\x00\x02\x00\x00\xff\x00')
-print(XCPOnUDP(length=2, ctr=0, sport=1, dport=1))
+print(XCPOnUDP(ctr=0, sport=1, dport=1))
 xcp_on_udp = XCPOnUDP(b'\x00\x01\x00\x01\x00\x0c\x00\x00\x00\x08\x00\x01\xff\x15\xC0\x08\x08\x00\x10\x10')
 assert xcp_on_udp.length == 8
 assert xcp_on_udp.ctr == 1
@@ -783,9 +783,9 @@ assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
 = CONNECT 2
 
 prt1, prt2 = 12345, 54321
-xcp_on_udp_request = XCPOnUDP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest() / Connect()
+xcp_on_udp_request = XCPOnUDP(sport=prt1, dport=prt2, ctr=0) / CTORequest() / Connect()
 
-assert xcp_on_udp_request.length == 2
+assert xcp_on_udp_request.length is None
 assert xcp_on_udp_request.ctr == 0
 assert xcp_on_udp_request.pid == 0xFF
 assert xcp_on_udp_request.connection_mode == 0
@@ -814,7 +814,6 @@ assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
 = XCPOnUDP post build length
 
 xcp_on_udp_request = XCPOnUDP(sport=1, dport=2, ctr=0) / CTORequest() / Connect()
-xcp_on_udp_request.do_build()
 assert bytes(xcp_on_udp_request)[8:10] == b'\x00\x02'
 
 + Tests XCPonTCP
@@ -825,8 +824,8 @@ from scapy.contrib.automotive.xcp.xcp import XCPOnTCP
 
 prt1, prt2 = 12345, 54321
 
-xcp_on_tcp_request = XCPOnTCP(sport=prt1, dport=prt2, length=2, ctr=0) / CTORequest() / Connect()
-assert xcp_on_tcp_request.length == 2
+xcp_on_tcp_request = XCPOnTCP(sport=prt1, dport=prt2, ctr=0) / CTORequest() / Connect()
+assert xcp_on_tcp_request.length is None
 assert xcp_on_tcp_request.ctr == 0
 assert xcp_on_tcp_request.pid == 0xFF
 assert xcp_on_tcp_request.connection_mode == 0
@@ -856,7 +855,4 @@ assert conf.contribs['XCP']['Address_Granularity_Byte'] == 1
 = XCPOnTCP post build length
 
 xcp_on_tcp_request = XCPOnTCP(sport=prt1, dport=prt2, ctr=0) / CTORequest() / Connect()
-
-xcp_on_tcp_request = XCPOnTCP(sport=1, dport=2, ctr=0) / CTORequest() / Connect()
-xcp_on_tcp_request.do_build()
 assert bytes(xcp_on_tcp_request)[20:22] == b'\x00\x02'
