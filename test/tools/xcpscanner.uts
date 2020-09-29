@@ -9,7 +9,6 @@
 = Imports
 
 import threading
-import time
 from subprocess import call
 
 import six
@@ -87,20 +86,20 @@ id_response = XCPOnCAN(
     can_identifier=ecu_xcp_identifier)
 
 assert id_response.answers(id_request) == True
+
 sock1 = new_can_socket0()
 sock1.basecls = XCPOnCAN
 
+sock2 = new_can_socket0()
+sock2.basecls = XCPOnCAN
+
 def ecu():
-    pkts = sock1.sniff(count=1, timeout=5)
+    pkts = sock1.sniff(count=1, timeout=2)
     if len(pkts) == 1:
         sock1.send(id_response)
 
 thread = threading.Thread(target=ecu)
 thread.start()
-time.sleep(0.1)
-
-sock2 = new_can_socket0()
-sock2.basecls = XCPOnCAN
 
 scanner = XCPOnCANScanner(sock2, broadcast_id=broadcast_identifier)
 result = scanner.start_scan()
@@ -133,25 +132,24 @@ id_response_4 = XCPOnCAN(
 sock1 = new_can_socket0()
 sock1.basecls = XCPOnCAN
 
+sock2 = new_can_socket0()
+sock2.basecls = XCPOnCAN
+
 def ecu():
-    p = sock1.sniff(count=1, store=False, timeout=5)
+    p = sock1.sniff(count=1, store=False, timeout=2)
     sock1.send(CAN(identifier=0x90, data=b'\x01\x02\x03'))
     sock1.send(id_response_3)
-    sock1.sniff(count=1, store=False, timeout=5)
+    sock1.sniff(count=1, store=False, timeout=2)
     sock1.send(CAN(identifier=0x90, data=b'\x05\x02\x03'))
     sock1.send(id_response_3)
     sock1.send(id_response_4)
-    sock1.sniff(count=2, store=False, timeout=5)
+    sock1.sniff(count=2, store=False, timeout=2)
     sock1.send(CAN(identifier=0x90, data=b'\xff\x05\x03'))
     sock1.send(id_response_1)
     sock1.send(id_response_2)
 
 thread = threading.Thread(target=ecu)
 thread.start()
-time.sleep(0.1)
-
-sock2 = new_can_socket0()
-sock2.basecls = XCPOnCAN
 
 scanner = XCPOnCANScanner(sock2, broadcast_id_range=broadcast_identifier_range)
 result = scanner.start_scan()
