@@ -20,6 +20,7 @@ class ScannerParams:
         self.use_extended_can_id = False
         self.broadcast_id = None
         self.broadcast_id_range = None
+        self.sniff_time = None
         self.verbose = False
         self.channel = None
 
@@ -45,7 +46,7 @@ def parse_inputs():
 
     parser = argparse.ArgumentParser()
     parser.description = "Finds XCP slaves using the XCP Broadcast-CAN " \
-                         "identifier. (Use with python3 only)"
+                         "identifier."
     parser.add_argument('--broadcast_id', '-b',
                         help='XCP Broadcast CAN identifier (in hex)')
     parser.add_argument('--start', '-s',
@@ -60,6 +61,9 @@ def parse_inputs():
                              'If actual ID is unknown the scan will test '
                              'broadcast ids between --start and --end '
                              '(inclusive)')
+    parser.add_argument('--sniff_time', '-t',
+                        help='Duration in milliseconds a sniff is waiting '
+                             'for a response.', type=int, default=100)
     parser.add_argument('channel',
                         help='Linux SocketCAN interface name, e.g.: vcan0')
     parser.add_argument('--extended_can_ids', '-x', type=bool,
@@ -70,6 +74,7 @@ def parse_inputs():
     scanner_params.channel = args.channel
     scanner_params.use_extended_can_id = args.extended_can_ids
     scanner_params.verbose = args.verbose
+    scanner_params.sniff_time = float(args.sniff_time) / 1000
 
     if args.broadcast_id:
         scanner_params.broadcast_id = int(args.broadcast_id, 16)
@@ -101,17 +106,20 @@ def main():
             scanner = XCPOnCANScanner(can_socket,
                                       broadcast_id=scanner_params.broadcast_id,
                                       use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
+                                      sniff_time=scanner_params.sniff_time,
                                       verbose=scanner_params.verbose)  # noqa: E501
 
         elif scanner_params.broadcast_id_range is not None:
             scanner = XCPOnCANScanner(can_socket,
                                       broadcast_id_range=scanner_params.broadcast_id_range,  # noqa: E501
                                       use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
+                                      sniff_time=scanner_params.sniff_time,
                                       verbose=scanner_params.verbose)  # noqa: E501
 
         else:
             scanner = XCPOnCANScanner(can_socket,
                                       use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
+                                      sniff_time=scanner_params.sniff_time,
                                       verbose=scanner_params.verbose)  # noqa: E501
 
         signal.signal(signal.SIGINT, signal_handler)
