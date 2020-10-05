@@ -17,7 +17,6 @@ from scapy.contrib.cansocket import CANSocket
 
 class ScannerParams:
     def __init__(self):
-        self.use_extended_can_id = False
         self.broadcast_id = None
         self.broadcast_id_range = None
         self.sniff_time = None
@@ -25,17 +24,20 @@ class ScannerParams:
         self.channel = None
 
 
-def signal_handler(_sig, _frame):
-    print('Interrupting scan!')
-    sys.exit(0)
+def signal_handler(sig, _frame):
+    sys.stderr.write("Interrupting scan!\n")
+    # Use same convention as the bash shell
+    # 128+n where n is the fatal error signal
+    # https://tldp.org/LDP/abs/html/exitcodes.html#EXITCODESREF
+    sys.exit(128 + sig)
 
 
 def init_socket(scan_params):
-    print("Initializing socket for" + scan_params.channel)
+    print("Initializing socket for " + scan_params.channel)
     try:
         sock = CANSocket(scan_params.channel)
     except Exception as e:
-        print("\nSocket could not be created:" + str(e))
+        sys.stderr.write("\nSocket could not be created: " + str(e) + "\n")
         sys.exit(1)
     sock.basecls = XCPOnCAN
     return sock
@@ -48,9 +50,9 @@ def parse_inputs():
     parser.description = "Finds XCP slaves using the XCP Broadcast-CAN " \
                          "identifier."
     parser.add_argument('--broadcast_id', '-b',
-                        help='XCP Broadcast CAN identifier (in hex)')
+                        help='XCP Broadcast CAN identifier (in hex), e.g. 7F0')
     parser.add_argument('--start', '-s',
-                        help='Start XCP Broadcast CAN identifier Start ID '
+                        help='XCP Broadcast CAN identifier Start ID '
                              '(in hex).\n'
                              'If actual ID is unknown the scan will '
                              'test broadcast ids between --start and --end '
@@ -66,13 +68,10 @@ def parse_inputs():
                              'for a response.', type=int, default=100)
     parser.add_argument('channel',
                         help='Linux SocketCAN interface name, e.g.: vcan0')
-    parser.add_argument('--extended_can_ids', '-x', type=bool,
-                        help='Use extended CAN identifiers')
-    parser.add_argument('--verbose', '-v', type=bool,
+    parser.add_argument('--verbose', '-v', action="store_true",
                         help='Display information during scan')
     args = parser.parse_args()
     scanner_params.channel = args.channel
-    scanner_params.use_extended_can_id = args.extended_can_ids
     scanner_params.verbose = args.verbose
     scanner_params.sniff_time = float(args.sniff_time) / 1000
 
@@ -83,7 +82,7 @@ def parse_inputs():
         scanner_params.broadcast_id_range = (
             int(args.start, 16), int(args.end, 16))
     elif bool(args.start) != bool(args.end):
-        parser.error("You can not only set --end/-e or --start/-s."
+        parser.error("You can not only set --end/-e or --start/-s. "
                      "You have to set both.")
         sys.exit(1)
 
@@ -105,22 +104,19 @@ def main():
         if scanner_params.broadcast_id is not None:
             scanner = XCPOnCANScanner(can_socket,
                                       broadcast_id=scanner_params.broadcast_id,
-                                      use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
                                       sniff_time=scanner_params.sniff_time,
-                                      verbose=scanner_params.verbose)  # noqa: E501
+                                      verbose=scanner_params.verbose)
 
         elif scanner_params.broadcast_id_range is not None:
             scanner = XCPOnCANScanner(can_socket,
                                       broadcast_id_range=scanner_params.broadcast_id_range,  # noqa: E501
-                                      use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
                                       sniff_time=scanner_params.sniff_time,
-                                      verbose=scanner_params.verbose)  # noqa: E501
+                                      verbose=scanner_params.verbose)
 
         else:
             scanner = XCPOnCANScanner(can_socket,
-                                      use_extended_can_id=scanner_params.use_extended_can_id,  # noqa: E501
                                       sniff_time=scanner_params.sniff_time,
-                                      verbose=scanner_params.verbose)  # noqa: E501
+                                      verbose=scanner_params.verbose)
 
         signal.signal(signal.SIGINT, signal_handler)
 
@@ -132,7 +128,7 @@ def main():
         else:
             print("Detected no XCP slave.")
     except Exception as err:
-        print(err)
+        sys.stderr.write(str(err) + "\n")
         sys.exit(1)
     finally:
         can_socket.close()
