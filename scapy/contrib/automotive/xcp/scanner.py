@@ -25,15 +25,14 @@ class XCPOnCANScanner:
     Scans for XCP Slave on CAN
     """
 
-    def __init__(self, can_socket, use_extended_can_id=False,
+    def __init__(self, can_socket,
                  broadcast_id=None, broadcast_id_range=None,
                  sniff_time=0.1, verbose=False):
-        # type: (CANSocket, Optional[bool], Optional[int], Optional[Tuple[int, int]], Optional[float], Optional[bool]) -> None # noqa: E501
+        # type: (CANSocket, Optional[int], Optional[Tuple[int, int]], Optional[float], Optional[bool]) -> None # noqa: E501
 
         """
         Constructor
         :param can_socket: Can Socket with XCPonCAN as basecls for scan
-        :param use_extended_can_id: True if extended IDs are used
         :param broadcast_id: XCP broadcast Id in network (if known)
         :param sniff_time: time the scan waits for a response
                            after sending a request
@@ -41,12 +40,9 @@ class XCPOnCANScanner:
         self.__socket = can_socket
         self.broadcast_id = broadcast_id
         self.broadcast_id_range = broadcast_id_range
-        self.__use_extended_can_id = use_extended_can_id
         self.__flags = 0
         self.__sniff_time = sniff_time
         self.__verbose = verbose
-        if use_extended_can_id:
-            self.__flags = "extended"
 
     def broadcast_get_slave_id(self, identifier):
         # type: (int) -> List[XCPScannerResult]
@@ -64,7 +60,7 @@ class XCPOnCANScanner:
 
         cto_responses, _unanswered = \
             self.__socket.sr(cto_request, timeout=self.__sniff_time,
-                             verbose=True, multi=True)
+                             verbose=self.__verbose, multi=True)
         all_slaves = []
         if len(cto_responses) == 0:
             self.log_verbose(
@@ -83,7 +79,7 @@ class XCPOnCANScanner:
                     answer.position_3 != 0x50:
                 continue
 
-            # Identifier that the master must use to send pkts to the slave
+            # Identifier that the master must use to send packets to the slave
             # and the slave will answer with
             slave_id = \
                 answer["TransportLayerCmdGetSlaveIdResponse"].can_identifier
