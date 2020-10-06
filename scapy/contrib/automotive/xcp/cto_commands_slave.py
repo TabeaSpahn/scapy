@@ -74,9 +74,13 @@ class ConnectPositiveResponse(Packet):
 
     def post_dissection(self, pkt):
         if conf.contribs["XCP"]["allow_byte_order_change"]:
-            conf.contribs["XCP"]["byte_order"] = 1 \
-                if "byte_order" in self.comm_mode_basic else 0
-            warning("Byte order changed because of received packet")
+            new_value = int(self.comm_mode_basic.byte_order)
+            if new_value != conf.contribs["XCP"]["byte_order"]:
+                conf.contribs["XCP"]["byte_order"] = new_value
+
+                desc = "Big Endian" if new_value else "Little Endian"
+                warning("Byte order changed to {0} because of received "
+                        "positive connect packet".format(desc))
 
         if conf.contribs["XCP"]["allow_ag_change"]:
             conf.contribs["XCP"][
