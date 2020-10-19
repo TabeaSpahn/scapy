@@ -58,9 +58,9 @@ class GetId(Packet):
 class SetRequest(Packet):
     """Request to save to non-volatile memory"""
     fields_desc = [
-        FlagsField("mode", 0, 8, (
+        FlagsField("mode", 0, 8, [
             "store_cal_req", "store_daq_req", "clear_daq_req", "x3", "x4",
-            "x5", "x6", "x7")),
+            "x5", "x6", "x7"]),
         XCPEndiannessField(ShortField("session_configuration_id", 0x00))
     ]
 
@@ -71,7 +71,8 @@ class GetSeed(Packet):
     res = {0x00: "resource", 0x01: "ignore"}
     fields_desc = [
         ByteEnumField("mode", 0, seed_mode),
-        ByteEnumField("resource", 0, res)
+        FlagsField("resource", 0, 8,
+                   ["cal_pag", "x1", "daq", "stim", "pgm", "x5", "x6", "x7"]),
     ]
 
 
@@ -79,7 +80,7 @@ class Unlock(Packet):
     # Send key for unlocking a protected resource
     fields_desc = [
         FieldLenField("len", None, length_of="seed", fmt="B"),
-        StrVarLenField("seed", "", length_from=lambda p: p.len,
+        StrVarLenField("seed", b"", length_from=lambda p: p.len,
                        max_length=lambda: get_max_cto() - 2)
     ]
 
